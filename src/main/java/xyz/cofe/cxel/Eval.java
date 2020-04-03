@@ -1,9 +1,6 @@
 package xyz.cofe.cxel;
 
-import xyz.cofe.cxel.ast.AST;
-import xyz.cofe.cxel.ast.BinaryOpAST;
-import xyz.cofe.cxel.ast.NumberAST;
-import xyz.cofe.cxel.ast.UnaryOpAST;
+import xyz.cofe.cxel.ast.*;
 import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.BitCount;
 import xyz.cofe.num.CommonBase;
@@ -25,29 +22,37 @@ public class Eval {
             return binary( (BinaryOpAST) ast );
         }else if( ast instanceof NumberAST ){
             return number( (NumberAST)ast );
+        }else if( ast instanceof BooleanAST ){
+            return bool( (BooleanAST)ast );
+        }else if( ast instanceof NullAST ){
+            return nul( (NullAST) ast );
         }
         throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
     }
 
-    //region eval number
+    //region eval literal : number, bool, nul
     protected Object number( NumberAST nast ){
         return nast.value();
+    }
+    protected Object bool( BooleanAST ast ){
+        return ast.value();
+    }
+    protected Object nul( NullAST ast ){
+        return ast.value();
     }
     //endregion
 
     //region unary()
-    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     protected Object unary( UnaryOpAST op ){
         switch( op.opKeyword() ){
-            case Minus:
-                return unaryMinus(op);
+            case Minus: return unaryMinus(op);
+            case Not: return unaryNot(op);
             default:
                 throw new RuntimeException(
                     "can't eval unary for keyword "+op.opKeyword()+" ("+op.opText()+")"
                 );
         }
     }
-
     protected Object unaryMinus( UnaryOpAST op ){
         Object val = eval(op.operand());
         if( !(val instanceof Number) )
@@ -59,6 +64,17 @@ public class Eval {
         Number n = (Number)val;
         return BaseNumbers.commonBase(0,n).sub();
     }
+    protected Object unaryNot( UnaryOpAST op ){
+        Object val = eval(op.operand());
+        if( !(val instanceof Boolean) )
+            throw new RuntimeException(
+                "can't eval unary not for not Boolean ("+
+                    (val!=null ? val.getClass() : "null")+
+                    ")");
+
+        Boolean n = (Boolean) val;
+        return !n;
+    }
     //endregion
 
     //region binary()
@@ -68,6 +84,14 @@ public class Eval {
             case Minus: return minus(op);
             case Multiple: return multiple(op);
             case Divide: return divide(op);
+            case Less: return less(op);
+            case LessOrEquals: return lessOrEquals(op);
+            case Equals: return equals(op);
+            case NotEquals: return notEquals(op);
+            case More: return more(op);
+            case MoreOrEquals: return moreOrEquals(op);
+            case And: return and(op);
+            case Or: return or(op);
             default:
                 throw new RuntimeException(
                     "can't eval binary for keyword "+op.opKeyword()+" ("+op.opText()+")"
@@ -75,6 +99,7 @@ public class Eval {
         }
     }
 
+    //region binary: + - * /
     protected Object plus( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
@@ -92,7 +117,6 @@ public class Eval {
 
         return plus( (Number)vLeft, (Number)vRight );
     }
-
     protected Object minus( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
@@ -110,7 +134,6 @@ public class Eval {
 
         return minus( (Number)vLeft, (Number)vRight );
     }
-
     protected Object multiple( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
@@ -128,7 +151,6 @@ public class Eval {
 
         return multiple( (Number)vLeft, (Number)vRight );
     }
-
     protected Object divide( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
@@ -146,6 +168,163 @@ public class Eval {
 
         return divide( (Number)vLeft, (Number)vRight );
     }
+    //endregion
+    //region binary: < <= == != >= >
+    @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
+    protected Object less( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+
+        if( vLeft==null && vRight==null )return false;
+
+        if( vLeft==null && vRight!=null )return true;
+        if( vLeft!=null && vRight==null )return false;
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return cmp( (Number)vLeft, (Number)vRight ) < 0;
+        }
+
+        if( vLeft instanceof Comparable ){
+            return ((Comparable) vLeft).compareTo(vRight) < 0;
+        }
+
+        throw new RuntimeException("can't compare for "+vLeft.getClass()+" < "+vRight.getClass());
+    }
+    @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
+    protected Object lessOrEquals( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+
+        if( vLeft==null && vRight==null )return true;
+
+        if( vLeft==null && vRight!=null )return true;
+        if( vLeft!=null && vRight==null )return false;
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return cmp( (Number)vLeft, (Number)vRight ) <= 0;
+        }
+
+        if( vLeft instanceof Comparable ){
+            return ((Comparable) vLeft).compareTo(vRight) <= 0;
+        }
+
+        throw new RuntimeException("can't compare for "+vLeft.getClass()+" <= "+vRight.getClass());
+    }
+    @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
+    protected Object more( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+
+        if( vLeft==null && vRight==null )return false;
+
+        if( vLeft==null && vRight!=null )return false;
+        if( vLeft!=null && vRight==null )return true;
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return cmp( (Number)vLeft, (Number)vRight ) > 0;
+        }
+
+        if( vLeft instanceof Comparable ){
+            return ((Comparable) vLeft).compareTo(vRight) > 0;
+        }
+
+        throw new RuntimeException("can't compare for "+vLeft.getClass()+" > "+vRight.getClass());
+    }
+    @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
+    protected Object moreOrEquals( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+
+        if( vLeft==null && vRight==null )return true;
+
+        if( vLeft==null && vRight!=null )return false;
+        if( vLeft!=null && vRight==null )return true;
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return cmp( (Number)vLeft, (Number)vRight ) >= 0;
+        }
+
+        if( vLeft instanceof Comparable ){
+            return ((Comparable) vLeft).compareTo(vRight) >= 0;
+        }
+
+        throw new RuntimeException("can't compare for "+vLeft.getClass()+" >= "+vRight.getClass());
+    }
+    @SuppressWarnings({ "ConstantConditions" })
+    protected Object equals( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+
+        if( vLeft==null && vRight==null )return true;
+
+        if( vLeft==null && vRight!=null )return false;
+        if( vLeft!=null && vRight==null )return false;
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return cmp( (Number)vLeft, (Number)vRight ) == 0;
+        }
+
+        return vLeft.equals(vRight);
+    }
+    @SuppressWarnings({ "ConstantConditions" })
+    protected Object notEquals( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+
+        if( vLeft==null && vRight==null )return false;
+
+        if( vLeft==null && vRight!=null )return true;
+        if( vLeft!=null && vRight==null )return true;
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return cmp( (Number)vLeft, (Number)vRight ) != 0;
+        }
+
+        return !vLeft.equals(vRight);
+    }
+    //endregion
+    //region binary: & |
+    protected Object and( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+
+        if( !(vLeft instanceof Boolean) ){
+            throw new RuntimeException(
+                "can't eval and for not Boolean - left operand ("+
+                    (vLeft!=null ? vLeft.getClass() : "null")+
+                    ")");
+        }
+
+        Object vRight = eval(op.right());
+        if( !(vRight instanceof Boolean) ){
+            throw new RuntimeException(
+                "can't eval and for not Boolean - right operand ("+
+                    (vRight!=null ? vRight.getClass() : "null")+
+                    ")");
+        }
+
+        return ((Boolean)vLeft) && ((Boolean)vRight);
+    }
+    protected Object or( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        if( !(vLeft instanceof Boolean) ){
+            throw new RuntimeException(
+                "can't eval or for not Boolean - left operand ("+
+                    (vLeft!=null ? vLeft.getClass() : "null")+
+                    ")");
+        }
+
+        Object vRight = eval(op.right());
+        if( !(vRight instanceof Boolean) ){
+            throw new RuntimeException(
+                "can't eval or for not Boolean - right operand ("+
+                    (vRight!=null ? vRight.getClass() : "null")+
+                    ")");
+        }
+
+        return ((Boolean)vLeft) || ((Boolean)vRight);
+    }
+    //endregion
+
     //endregion
 
     //region math operations
@@ -198,12 +377,12 @@ public class Eval {
     }
 
     /**
-     * Деление чисел
+     * Сравнение чисел
      * @param n1 первое число
      * @param n2 второе число
      * @return Произведение
      */
-    private static Number cmp( Number n1, Number n2 ){
+    private static int cmp( Number n1, Number n2 ){
         if( n1==null )throw new IllegalArgumentException( "n1==null" );
         if( n2==null )throw new IllegalArgumentException( "n2==null" );
 

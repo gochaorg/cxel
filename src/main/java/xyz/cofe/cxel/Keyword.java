@@ -14,6 +14,10 @@ import java.util.Optional;
  * Список ключевых слов
  */
 public enum Keyword {
+    /** Нулевая ссылка */ Null("null"),
+    /** Булево - true */ True("true"),
+    /** Булево - false */ False("false"),
+
     /**
      * Открытая круглая скобка
      */
@@ -23,6 +27,17 @@ public enum Keyword {
      * Закрытая круглая скобка
      */
     CloseBracket(")"),
+
+    /** Равенство */ Equals("=="),
+    /** Не равенство */ NotEquals("!="),
+    /** Меньше */ Less("<"),
+    /** Больше */ More(">"),
+    /** Меньше или равно */ LessOrEquals("<="),
+    /** Больше или равно */ MoreOrEquals(">="),
+
+    /** Или */ Or("|"),
+    /** Не */ Not("!"),
+    /** И */ And("&"),
 
     /** Плюс */ Plus("+"),
     /** Минус */ Minus("-"),

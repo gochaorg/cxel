@@ -3,6 +3,7 @@ package xyz.cofe.cxel;
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.cxel.tok.FloatNumberTok;
 import xyz.cofe.cxel.tok.IntegerNumberTok;
+import xyz.cofe.cxel.tok.KeywordTok;
 import xyz.cofe.text.tparse.*;
 
 import java.util.Optional;
@@ -98,6 +99,7 @@ public class Parser {
     }
     //endregion
 
+    //region Литеральные значения
     //region number : GR
     /**
      * Парсинг целого числа
@@ -118,10 +120,45 @@ public class Parser {
      */
     public static final GR<TPointer, AST> number = floatNumber.another(intNumber).map( t->(AST)t );
     //endregion
+    //region bool : GR
+    /**
+     * Парсинг булево
+     */
+    public static final GR<TPointer, AST> bool = ptr -> {
+        Optional<CToken> tok = ptr.lookup(0);
+        if( tok.isPresent() && tok.get() instanceof KeywordTok ){
+            Keyword k = ((KeywordTok)tok.get()).keyword;
+            if( k!=null ){
+                if( k==Keyword.True || k==Keyword.False ){
+                    return Optional.of( new BooleanAST(ptr, (KeywordTok)tok.get()) );
+                }
+            }
+        }
+        return Optional.empty();
+    };
+    //endregion
+    //region null : GR
+    /**
+     * Парсинг null значение
+     */
+    public static final GR<TPointer, AST> nullConst = ptr -> {
+        Optional<CToken> tok = ptr.lookup(0);
+        if( tok.isPresent() && tok.get() instanceof KeywordTok ){
+            Keyword k = ((KeywordTok)tok.get()).keyword;
+            if( k!=null ){
+                if( k==Keyword.Null ){
+                    return Optional.of( new NullAST(ptr, (KeywordTok)tok.get()) );
+                }
+            }
+        }
+        return Optional.empty();
+    };
+    //endregion
+    //endregion
 
     /**
      * Выражение <br>
-     * expression ::= {@link #plusMinusOperator}
+     * expression ::= {@link #or}
      */
     public static final ProxyGR<TPointer,AST> expression = new ProxyGR<>(dummy);
 
@@ -138,10 +175,14 @@ public class Parser {
 
     /**
      * Унарная операция <br>
-     * unaryExression ::= {@link Keyword#Minus minus} {@link #expression}
+     * unaryExression ::=
+     * ( {@link Keyword#Minus '-'}
+     * | {@link Keyword#Not '!'}
+     * )
+     * {@link #expression}
      */
     public static final GR<TPointer, ? extends AST> unaryExression
-        = Keyword.Minus.parser().next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
+        = Keyword.parserOf( Keyword.Minus, Keyword.Not ).next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
 
     /**
      * Атомарное значение <br>
@@ -153,9 +194,12 @@ public class Parser {
     public static final GR<TPointer,? extends AST> atomValue
         = bracketExpression
               .another(number)
+              .another(bool)
+              .another(nullConst)
               .another(unaryExression)
               .map( t -> (AST)t );
 
+    //region Бинарные операторы, в порядке уменьшения приоритета
     /**
      * Оператор умножения/деления <br>
      * multipleDevideOperator ::= {@link #atomValue}
@@ -164,7 +208,7 @@ public class Parser {
      *   {@link #atomValue}
      * }
      */
-    public static final GR<TPointer, ? extends AST> multipleDevideOperator
+    public static final GR<TPointer, ? extends AST> mulDiv
         = binaryOp(
         atomValue,
         Keyword.parserOf( Keyword.Multiple, Keyword.Divide ),
@@ -173,22 +217,80 @@ public class Parser {
 
     /**
      * Оператор сложения/вычитания <br>
-     * plusMinusOperator ::= {@link #multipleDevideOperator mulDiv}
+     * plusMinusOperator ::= {@link #mulDiv mulDiv}
      * {
      *   ( {@link Keyword#Plus plus} | {@link Keyword#Minus minus} )
-     *   {@link #multipleDevideOperator mulDiv}
+     *   {@link #mulDiv mulDiv}
      * }
      */
-    public static final GR<TPointer, ? extends AST> plusMinusOperator
+    public static final GR<TPointer, ? extends AST> plusMinus
         = binaryOp(
-        multipleDevideOperator,
+        mulDiv,
         Keyword.parserOf( Keyword.Plus, Keyword.Minus ),
-        multipleDevideOperator
+        mulDiv
     );
 
-    //region init expression
+    /**
+     * Оператор сравнения <br>
+     * compare ::= {@link #plusMinus}
+     * {
+     *   ( {@link Keyword#Less &lt;} |
+     *     {@link Keyword#LessOrEquals &lt;=} |
+     *     {@link Keyword#More &gt;} |
+     *     {@link Keyword#MoreOrEquals &gt;=} |
+     *     {@link Keyword#Equals ==} |
+     *     {@link Keyword#NotEquals !=}
+     *   )
+     *   {@link #plusMinus}
+     * }
+     */
+    public static final GR<TPointer, ? extends AST> compare
+        = binaryOp(
+        plusMinus,
+        Keyword.parserOf(
+            Keyword.Less,
+            Keyword.LessOrEquals,
+            Keyword.More,
+            Keyword.MoreOrEquals,
+            Keyword.Equals,
+            Keyword.NotEquals ),
+        plusMinus
+    );
+
+    /**
+     * Оператор И <br>
+     * and ::= {@link #compare}
+     * {
+     *   {@link Keyword#And}
+     *   {@link #compare}
+     * }
+     */
+    public static final GR<TPointer, ? extends AST> and
+        = binaryOp(
+        compare,
+        Keyword.And.parser(),
+        compare
+    );
+
+    /**
+     * Оператор ИЛИ <br>
+     * or ::= {@link #compare}
+     * {
+     *   {@link Keyword#Or}
+     *   {@link #compare}
+     * }
+     */
+    public static final GR<TPointer, ? extends AST> or
+        = binaryOp(
+        and,
+        Keyword.Or.parser(),
+        and
+    );
+    //endregion
+
+    //region Инициализация рекурсии expression
     static {
-        expression.setTarget(plusMinusOperator);
+        expression.setTarget(or);
     }
     //endregion
 

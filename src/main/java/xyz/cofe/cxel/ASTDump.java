@@ -1,9 +1,6 @@
 package xyz.cofe.cxel;
 
-import xyz.cofe.cxel.ast.AST;
-import xyz.cofe.cxel.ast.BinaryOpAST;
-import xyz.cofe.cxel.ast.NumberAST;
-import xyz.cofe.cxel.ast.UnaryOpAST;
+import xyz.cofe.cxel.ast.*;
 
 import java.util.function.Consumer;
 
@@ -21,6 +18,8 @@ public class ASTDump {
             c.decode(BinaryOpAST.class, BinaryOpAST::opText);
             c.decode(UnaryOpAST.class, UnaryOpAST::opText);
             c.decode(NumberAST.class, n -> n.value().toString());
+            c.decode(NullAST.class, n -> "null");
+            c.decode(BooleanAST.class, n -> n.value().toString());
         } );
     }
 
