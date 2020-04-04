@@ -1,7 +1,9 @@
 package xyz.cofe.cxel;
 
+import javafx.util.Pair;
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.cxel.tok.FloatNumberTok;
+import xyz.cofe.cxel.tok.IdTok;
 import xyz.cofe.cxel.tok.IntegerNumberTok;
 import xyz.cofe.cxel.tok.KeywordTok;
 import xyz.cofe.text.tparse.*;
@@ -182,13 +184,24 @@ public class Parser {
      * {@link #expression}
      */
     public static final GR<TPointer, ? extends AST> unaryExression
-        = Keyword.parserOf( Keyword.Minus, Keyword.Not ).next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
+        = Keyword.parserOf( Keyword.Minus, Keyword.Not )
+          .next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
+
+    /**
+     * Указатель на переменную <br>
+     * varRef ::= {@link IdTok}
+     */
+    public static final GR<TPointer, ? extends AST> varRef
+        = atomic(IdTok.class, VarRefAST::new);
 
     /**
      * Атомарное значение <br>
      * atomValue ::=
      *     {@link #bracketExpression}
      *   | {@link #number}
+     *   | {@link #bool}
+     *   | {@link #nullConst}
+     *   | {@link #varRef}
      *   | {@link #unaryExression}
      */
     public static final GR<TPointer,? extends AST> atomValue
@@ -196,6 +209,7 @@ public class Parser {
               .another(number)
               .another(bool)
               .another(nullConst)
+              .another(varRef)
               .another(unaryExression)
               .map( t -> (AST)t );
 
@@ -288,9 +302,19 @@ public class Parser {
     );
     //endregion
 
+    public static GR<TPointer, ? extends AST> postfix(){
+        return ptr -> {
+            Optional<? extends AST> base = or.apply(ptr);
+            if( base==null || !base.isPresent() )return Optional.empty();
+
+            return Optional.of(base.get());
+        };
+    }
+
     //region Инициализация рекурсии expression
     static {
-        expression.setTarget(or);
+        //expression.setTarget(or);
+        expression.setTarget(postfix());
     }
     //endregion
 

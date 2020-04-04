@@ -1,14 +1,34 @@
-package xyz.cofe.cxel;
+package xyz.cofe.cxel.eval;
 
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.BitCount;
 import xyz.cofe.num.CommonBase;
 
+import java.util.function.Consumer;
+
 /**
  * Непосредственная интерпретация AST
  */
 public class Eval {
+    public Eval(){
+        context = new EvalContext();
+    }
+
+    public Eval(EvalContext ctx){
+        if( ctx==null )throw new IllegalArgumentException( "ctx==null" );
+        context = ctx;
+    }
+
+    public Eval configure( Consumer<Eval> conf ){
+        if( conf==null )throw new IllegalArgumentException( "conf==null" );
+        conf.accept(this);
+        return this;
+    }
+
+    protected final EvalContext context;
+    public EvalContext context(){ return context; }
+
     /**
      * Интерпретация ast дерева
      * @param ast дерево
@@ -26,11 +46,13 @@ public class Eval {
             return bool( (BooleanAST)ast );
         }else if( ast instanceof NullAST ){
             return nul( (NullAST) ast );
+        }else if( ast instanceof VarRefAST ){
+            return variable( (VarRefAST) ast );
         }
         throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
     }
 
-    //region eval literal : number, bool, nul
+    //region eval literal : number, bool, nul, var
     protected Object number( NumberAST nast ){
         return nast.value();
     }
@@ -39,6 +61,9 @@ public class Eval {
     }
     protected Object nul( NullAST ast ){
         return ast.value();
+    }
+    protected Object variable( VarRefAST ast ){
+        return context.read(ast.variable());
     }
     //endregion
 

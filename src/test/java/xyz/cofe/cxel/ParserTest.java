@@ -6,12 +6,11 @@ import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.ast.AST;
 import xyz.cofe.cxel.ast.BinaryOpAST;
 import xyz.cofe.cxel.ast.NumberAST;
+import xyz.cofe.cxel.eval.Eval;
 import xyz.cofe.fn.Pair;
 import xyz.cofe.iter.Eterable;
 import xyz.cofe.text.tparse.TPointer;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -153,5 +152,29 @@ public class ParserTest {
             assertTrue(evRes!=null);
             assertTrue(evRes.equals(sample.b()));
         });
+    }
+
+    @Test
+    public void varRef(){
+        TPointer psource = Parser.source("a + b");
+
+        System.out.println("--- tokens ---");
+        psource.tokens().forEach(System.out::println);
+
+        Optional<? extends AST> astRoot
+            = Parser.expression.apply( psource );
+
+        Assertions.assertTrue(astRoot!=null);
+        Assertions.assertTrue(astRoot.isPresent());
+
+        System.out.println("--- ast ---");
+        ASTDump.build().dump( astRoot.get() );
+
+        Eval ev = new Eval();
+        ev.context().bind("a", 10 );
+        ev.context().bind("b", 12 );
+
+        Object evRes = ev.eval(astRoot.get());
+        System.out.println("eval result: "+evRes);
     }
 }

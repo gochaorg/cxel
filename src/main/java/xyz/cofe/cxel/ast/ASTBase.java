@@ -4,14 +4,32 @@ import xyz.cofe.text.tparse.TPointer;
 
 import java.util.function.Consumer;
 
+/**
+ * Базовый класс для AST выражений
+ * @param <SELF> Производный тип
+ */
 public abstract class ASTBase<SELF extends ASTBase<SELF>> implements AST {
+    /**
+     * Конструктор по умолчанию
+     */
     protected ASTBase(){}
+
+    /**
+     * Уонструктор копирования
+     * @param sample образец для копирования
+     */
     protected ASTBase(ASTBase<SELF> sample){
         if( sample!=null ){
             this.begin = sample.begin;
             this.end = sample.end;
         }
     }
+
+    /**
+     * Конструктор
+     * @param begin начало AST узла
+     * @param end конец AST узла
+     */
     public ASTBase( TPointer begin, TPointer end ){
         if( begin==null )throw new IllegalArgumentException("begin==null");
         if( end==null )throw new IllegalArgumentException("end==null");
@@ -19,7 +37,17 @@ public abstract class ASTBase<SELF extends ASTBase<SELF>> implements AST {
         this.end = end;
     }
 
+    /**
+     * Клонирование AST узла
+     * @return клон
+     */
     public abstract SELF clone();
+
+    /**
+     * Клонирование с настройкой клона
+     * @param conf конфигурация
+     * @return клон
+     */
     protected SELF cloneAndConf( Consumer<SELF> conf){
         if( conf==null )throw new IllegalArgumentException( "conf==null" );
         SELF c = clone();
@@ -28,11 +56,21 @@ public abstract class ASTBase<SELF extends ASTBase<SELF>> implements AST {
     }
 
     protected TPointer begin;
+
+    /**
+     * Возвращает начало токена
+     * @return указатель на начало (включительно)
+     */
     @Override public TPointer begin() {
         return begin;
     }
 
     protected TPointer end;
+
+    /**
+     * Возвращает указатель на конец токена
+     * @return Указатель на конец токена (включительно)
+     */
     @Override public TPointer end() {
         return end;
     }
