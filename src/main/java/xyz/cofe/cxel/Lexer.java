@@ -46,6 +46,15 @@ public class Lexer {
     public static final GR<CharPointer, KeywordTok> keyword
         = Keyword.lexer();
 
+    public static final GR<CharPointer, IdTok> id
+        = test( c->Character.isLetter(c) || c=='_' )
+          .next( test(c->Character.isLetter(c) || c=='_' || Character.isDigit(c)).repeat().map(CToken::new) )
+          .map( (a,b) -> new IdTok(a.begin(),b.end()) )
+        .<IdTok>another(
+            test(c->Character.isLetter(c) || c=='_', p -> new IdTok(p,p.move(1)) )
+        ).map()
+        ;
+
     /**
      * Список парсеров лексем
      */
@@ -54,6 +63,7 @@ public class Lexer {
             add(floatNumber);
             add(integerNumber);
             add(keyword);
+            add(id);
             add(ws);
         }};
 
