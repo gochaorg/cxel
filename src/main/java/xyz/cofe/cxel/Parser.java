@@ -1,6 +1,5 @@
 package xyz.cofe.cxel;
 
-import javafx.util.Pair;
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.cxel.tok.FloatNumberTok;
 import xyz.cofe.cxel.tok.IdTok;
@@ -213,6 +212,28 @@ public class Parser {
               .another(unaryExression)
               .map( t -> (AST)t );
 
+    public static GR<TPointer, ? extends AST> postfix(GR<TPointer, ? extends AST> grBase){
+        if( grBase==null )throw new IllegalArgumentException( "grBase==null" );
+        return ptrStart -> {
+            Optional<? extends AST> base = grBase.apply(ptrStart);
+            if( base==null || !base.isPresent() )return Optional.empty();
+
+            TPointer ptr = base.get().end();
+
+            Optional<CToken> t0 = ptr.lookup(0);
+            Optional<CToken> t1 = ptr.lookup(1);
+            if( t0.isPresent() && t1.isPresent()
+                    &&  Keyword.Dot.match(t0)
+                    &&  t1.get() instanceof IdTok
+            ){
+                PropertyAST prop = new PropertyAST(ptrStart, ptr.move(2), base.get(), (IdTok)t1.get());
+                return Optional.of(prop);
+            }
+
+            return Optional.of(base.get());
+        };
+    }
+
     //region Бинарные операторы, в порядке уменьшения приоритета
     /**
      * Оператор умножения/деления <br>
@@ -224,9 +245,9 @@ public class Parser {
      */
     public static final GR<TPointer, ? extends AST> mulDiv
         = binaryOp(
-        atomValue,
+        postfix(atomValue),
         Keyword.parserOf( Keyword.Multiple, Keyword.Divide ),
-        atomValue
+        postfix(atomValue)
     );
 
     /**
@@ -302,19 +323,10 @@ public class Parser {
     );
     //endregion
 
-    public static GR<TPointer, ? extends AST> postfix(){
-        return ptr -> {
-            Optional<? extends AST> base = or.apply(ptr);
-            if( base==null || !base.isPresent() )return Optional.empty();
-
-            return Optional.of(base.get());
-        };
-    }
-
     //region Инициализация рекурсии expression
     static {
-        //expression.setTarget(or);
-        expression.setTarget(postfix());
+        expression.setTarget(or);
+        //expression.setTarget(postfix());
     }
     //endregion
 

@@ -156,4 +156,31 @@ public enum Keyword {
             return Optional.empty();
         };
     }
+
+    /**
+     * Проверка - совпадает текущее ключевое слово с указанным токеном/лексеммой
+     * @param cToken лексема
+     * @return true - совпадает / false - не совпадает
+     */
+    public boolean match( CToken cToken ){
+        if( cToken==null )return false;
+        if( !(cToken instanceof KeywordTok) )return false;
+
+        KeywordTok kwt = (KeywordTok)cToken;
+        return this.equals(kwt.keyword);
+    }
+
+    /**
+     * Проверка - совпадает текущее ключевое слово с указанным токеном/лексеммой
+     * @param cToken лексема
+     * @return true - совпадает / false - не совпадает
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public boolean match( Optional<? extends CToken> cToken ){
+        if( cToken==null || !cToken.isPresent() )return false;
+        if( !(cToken.get() instanceof KeywordTok) )return false;
+
+        KeywordTok kwt = (KeywordTok)cToken.get();
+        return this.equals(kwt.keyword);
+    }
 }

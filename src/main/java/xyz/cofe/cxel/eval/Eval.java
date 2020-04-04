@@ -5,6 +5,7 @@ import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.BitCount;
 import xyz.cofe.num.CommonBase;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -48,6 +49,8 @@ public class Eval {
             return nul( (NullAST) ast );
         }else if( ast instanceof VarRefAST ){
             return variable( (VarRefAST) ast );
+        }else if( ast instanceof PropertyAST ){
+            return property( (PropertyAST) ast );
         }
         throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
     }
@@ -64,6 +67,16 @@ public class Eval {
     }
     protected Object variable( VarRefAST ast ){
         return context.read(ast.variable());
+    }
+    protected Object property( PropertyAST ast ){
+        Object obj = eval(ast.base());
+        if( obj==null )throw new IllegalArgumentException("can't read property '"+ast.property()+"' of null");
+
+        if( obj instanceof Map ){
+            return ((Map)obj).get(ast.property());
+        }
+
+        throw new RuntimeException("can't resolve property '"+ast.property()+"' for obj of type "+obj.getClass());
     }
     //endregion
 

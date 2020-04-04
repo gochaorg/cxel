@@ -11,6 +11,7 @@ import xyz.cofe.fn.Pair;
 import xyz.cofe.iter.Eterable;
 import xyz.cofe.text.tparse.TPointer;
 
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -173,6 +174,33 @@ public class ParserTest {
         Eval ev = new Eval();
         ev.context().bind("a", 10 );
         ev.context().bind("b", 12 );
+
+        Object evRes = ev.eval(astRoot.get());
+        System.out.println("eval result: "+evRes);
+    }
+
+    @Test
+    public void prop(){
+        TPointer psource = Parser.source("v.a + v.b");
+
+        System.out.println("--- tokens ---");
+        psource.tokens().forEach(System.out::println);
+
+        Optional<? extends AST> astRoot
+            = Parser.expression.apply( psource );
+
+        Assertions.assertTrue(astRoot!=null);
+        Assertions.assertTrue(astRoot.isPresent());
+
+        System.out.println("--- ast ---");
+        ASTDump.build().dump( astRoot.get() );
+
+        Eval ev = new Eval();
+
+        LinkedHashMap<String,Object> m = new LinkedHashMap<>();
+        m.put("a",23);
+        m.put("b",34);
+        ev.context().bind("v", m );
 
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);

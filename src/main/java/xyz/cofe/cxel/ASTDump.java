@@ -21,6 +21,7 @@ public class ASTDump {
             c.decode(NullAST.class, n -> "null");
             c.decode(BooleanAST.class, n -> n.value().toString());
             c.decode(VarRefAST.class, VarRefAST::variable);
+            c.decode(PropertyAST.class, PropertyAST::property);
         } );
     }
 
