@@ -5,8 +5,13 @@ import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.BitCount;
 import xyz.cofe.num.CommonBase;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Непосредственная интерпретация AST
@@ -51,6 +56,8 @@ public class Eval {
             return variable( (VarRefAST) ast );
         }else if( ast instanceof PropertyAST ){
             return property( (PropertyAST) ast );
+        }else if( ast instanceof CallAST ){
+            return call( (CallAST) ast );
         }
         throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
     }
@@ -64,19 +71,6 @@ public class Eval {
     }
     protected Object nul( NullAST ast ){
         return ast.value();
-    }
-    protected Object variable( VarRefAST ast ){
-        return context.read(ast.variable());
-    }
-    protected Object property( PropertyAST ast ){
-        Object obj = eval(ast.base());
-        if( obj==null )throw new IllegalArgumentException("can't read property '"+ast.property()+"' of null");
-
-        if( obj instanceof Map ){
-            return ((Map)obj).get(ast.property());
-        }
-
-        throw new RuntimeException("can't resolve property '"+ast.property()+"' for obj of type "+obj.getClass());
     }
     //endregion
 
@@ -438,4 +432,44 @@ public class Eval {
         throw new RuntimeException("bug at compare numbers");
     }
     //endregion
+
+    protected Object variable( VarRefAST ast ){
+        return context.read(ast.variable());
+    }
+    protected Object property( PropertyAST ast ){
+        Object obj = eval(ast.base());
+        if( obj==null )throw new IllegalArgumentException("can't read property '"+ast.property()+"' of null");
+
+        if( obj instanceof Map ){
+            return ((Map)obj).get(ast.property());
+        }
+
+        throw new RuntimeException("can't resolve property '"+ast.property()+"' for obj of type "+obj.getClass());
+    }
+    protected Object call( CallAST ast ){
+        AST base = ast.base();
+        if( base instanceof VarRefAST ){
+            Object fn = eval(base);
+            if( fn==null )throw new RuntimeException("can't call null object");
+
+            List<Object> args = new ArrayList<>();
+            for( AST arg : ast.args() ){
+                args.add( eval(arg) );
+            }
+
+            if( fn instanceof Supplier ){
+                return ((Supplier) fn).get();
+            }else if( fn instanceof Function ){
+                return ((Function) fn).apply( args.size()>0 ? args.get(0) : null );
+            }else if( fn instanceof BiFunction ){
+                return ((BiFunction) fn).apply(
+                    args.size()>0 ? args.get(0) : null,
+                    args.size()>1 ? args.get(1) : null
+                );
+            }
+
+            throw new RuntimeException("can't call "+fn.getClass());
+        }
+        return null;
+    }
 }

@@ -7,6 +7,9 @@ import xyz.cofe.cxel.ast.AST;
 import xyz.cofe.cxel.ast.BinaryOpAST;
 import xyz.cofe.cxel.ast.NumberAST;
 import xyz.cofe.cxel.eval.Eval;
+import xyz.cofe.fn.Fn0;
+import xyz.cofe.fn.Fn1;
+import xyz.cofe.fn.Fn2;
 import xyz.cofe.fn.Pair;
 import xyz.cofe.iter.Eterable;
 import xyz.cofe.text.tparse.TPointer;
@@ -180,7 +183,7 @@ public class ParserTest {
     }
 
     @Test
-    public void prop(){
+    public void prop01(){
         TPointer psource = Parser.source("v.a + v.b");
 
         System.out.println("--- tokens ---");
@@ -201,6 +204,80 @@ public class ParserTest {
         m.put("a",23);
         m.put("b",34);
         ev.context().bind("v", m );
+
+        Object evRes = ev.eval(astRoot.get());
+        System.out.println("eval result: "+evRes);
+    }
+
+    @Test
+    public void prop02(){
+        TPointer psource = Parser.source("v.a.c + v.b.d");
+
+        System.out.println("--- tokens ---");
+        psource.tokens().forEach(System.out::println);
+
+        Optional<? extends AST> astRoot
+            = Parser.expression.apply( psource );
+
+        Assertions.assertTrue(astRoot!=null);
+        Assertions.assertTrue(astRoot.isPresent());
+
+        System.out.println("--- ast ---");
+        ASTDump.build().dump( astRoot.get() );
+
+        Eval ev = new Eval();
+
+        LinkedHashMap<String,Object> l = new LinkedHashMap<>();
+        l.put("c",13);
+        l.put("d",24);
+
+        LinkedHashMap<String,Object> m = new LinkedHashMap<>();
+        m.put("a",l);
+        m.put("b",l);
+        ev.context().bind("v", m );
+
+        Object evRes = ev.eval(astRoot.get());
+        System.out.println("eval result: "+evRes);
+    }
+
+    @Test
+    public void call01(){
+        TPointer psource = Parser.source("fn2( 1, 2 ) + fn1( 1 ) - fn0()");
+
+        System.out.println("--- tokens ---");
+        psource.tokens().forEach(System.out::println);
+
+        Optional<? extends AST> astRoot
+            = Parser.expression.apply( psource );
+
+        Assertions.assertTrue(astRoot!=null);
+        Assertions.assertTrue(astRoot.isPresent());
+
+        System.out.println("--- ast ---");
+        ASTDump.build().dump( astRoot.get() );
+
+        Eval ev = new Eval();
+        ev.context().bind("fn2", new Fn2<Object,Object,Object>() {
+            @Override
+            public Object apply( Object a0, Object a1 ){
+                System.out.println("call fn2 "+a0+", "+a1);
+                return a0;
+            }
+        });
+        ev.context().bind("fn1", new Fn1() {
+            @Override
+            public Object apply( Object a0 ){
+                System.out.println("call fn1 "+a0);
+                return a0;
+            }
+        });
+        ev.context().bind("fn0", new Fn0() {
+            @Override
+            public Object apply(){
+                System.out.println("call fn0");
+                return 0;
+            }
+        });
 
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);

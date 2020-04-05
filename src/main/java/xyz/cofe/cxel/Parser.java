@@ -7,6 +7,8 @@ import xyz.cofe.cxel.tok.IntegerNumberTok;
 import xyz.cofe.cxel.tok.KeywordTok;
 import xyz.cofe.text.tparse.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
@@ -214,24 +216,67 @@ public class Parser {
 
     public static GR<TPointer, ? extends AST> postfix(GR<TPointer, ? extends AST> grBase){
         if( grBase==null )throw new IllegalArgumentException( "grBase==null" );
-        return ptrStart -> {
-            Optional<? extends AST> base = grBase.apply(ptrStart);
-            if( base==null || !base.isPresent() )return Optional.empty();
 
-            TPointer ptr = base.get().end();
+        GR<TPointer, ? extends AST> reslt = ptrStart -> {
+            Optional<? extends AST> obase = grBase.apply(ptrStart);
+            if( obase==null || !obase.isPresent() )return Optional.empty();
 
-            Optional<CToken> t0 = ptr.lookup(0);
-            Optional<CToken> t1 = ptr.lookup(1);
-            if( t0.isPresent() && t1.isPresent()
-                    &&  Keyword.Dot.match(t0)
-                    &&  t1.get() instanceof IdTok
-            ){
-                PropertyAST prop = new PropertyAST(ptrStart, ptr.move(2), base.get(), (IdTok)t1.get());
-                return Optional.of(prop);
+            AST base = obase.get();
+            TPointer ptr = base.end();
+
+            while( true ){
+                Optional<CToken> t0 = ptr.lookup(0);
+
+                if( Keyword.Dot.match(t0) ){
+                    Optional<CToken> t1 = ptr.lookup(1);
+                    if( t1.isPresent() && t1.get() instanceof IdTok ){
+                        PropertyAST prop = new PropertyAST(ptrStart, ptr.move(2), base, (IdTok) t1.get());
+                        base = prop;
+                        ptr = base.end();
+                        continue;
+                    }
+                } else if( Keyword.OpenBracket.match(t0) ){
+                    boolean succ = true;
+                    List<AST> args = new ArrayList<>();
+                    TPointer p = ptr.move(1);
+                    while( true ){
+                        if( Keyword.CloseBracket.match(p.lookup(0)) ){
+                            p = p.move(1);
+                            succ = true;
+                            break;
+                        }
+
+                        Optional<AST> arg = expression.apply(p);
+                        if( arg==null || !arg.isPresent() ){
+                            succ = false;
+                            break;
+                        }
+
+                        p = arg.get().end();
+                        args.add( arg.get() );
+                        if( Keyword.Comma.match(p.lookup(0)) ){
+                            p = p.move(1);
+                            continue;
+                        }else if( Keyword.CloseBracket.match(p.lookup(0))){
+                            p = p.move(1);
+                            succ = true;
+                            break;
+                        }
+                    }
+                    if( succ ){
+                        CallAST call = new CallAST(base.end(), p, base, args);
+                        base = call;
+                        ptr = base.end();
+                        continue;
+                    }
+                }
+
+                break;
             }
 
-            return Optional.of(base.get());
+            return Optional.of(base);
         };
+        return reslt;
     }
 
     //region Бинарные операторы, в порядке уменьшения приоритета
