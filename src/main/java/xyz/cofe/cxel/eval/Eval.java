@@ -50,6 +50,8 @@ public class Eval {
             return number( (NumberAST)ast );
         }else if( ast instanceof BooleanAST ){
             return bool( (BooleanAST)ast );
+        }else if( ast instanceof StringAST ){
+            return string( (StringAST)ast );
         }else if( ast instanceof NullAST ){
             return nul( (NullAST) ast );
         }else if( ast instanceof VarRefAST ){
@@ -62,7 +64,10 @@ public class Eval {
         throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
     }
 
-    //region eval literal : number, bool, nul, var
+    //region eval literal : number, bool, nul, str
+    protected Object string( StringAST nast ){
+        return nast.value();
+    }
     protected Object number( NumberAST nast ){
         return nast.value();
     }
@@ -134,20 +139,28 @@ public class Eval {
     //region binary: + - * /
     protected Object plus( BinaryOpAST op ){
         Object vLeft = eval(op.left());
-        if( !(vLeft instanceof Number) )
-            throw new RuntimeException(
-                "can't eval plus for not Number - left operand ("+
-                    (vLeft!=null ? vLeft.getClass() : "null")+
-                    ")");
-
         Object vRight = eval(op.right());
-        if( !(vRight instanceof Number) )
-            throw new RuntimeException(
-                "can't eval plus for not Number - right operand ("+
-                    (vRight!=null ? vRight.getClass() : "null")+
-                    ")");
 
-        return plus( (Number)vLeft, (Number)vRight );
+        if( vLeft instanceof String ){
+            String str = vLeft.toString();
+            str = str + vRight;
+            return str;
+        }
+
+        if( vLeft instanceof Number && vRight instanceof Number ){
+            return plus( (Number)vLeft, (Number)vRight );
+        }
+
+        if( vRight instanceof String ){
+            String str = vRight.toString();
+            str = "" + vLeft + str;
+            return str;
+        }
+
+        throw new RuntimeException("can't eval plus for "+
+           (vLeft==null ? "null" : vLeft.getClass())+" and "+
+           (vRight==null ? "null" : vRight.getClass())
+        );
     }
     protected Object minus( BinaryOpAST op ){
         Object vLeft = eval(op.left());

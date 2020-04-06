@@ -1,10 +1,7 @@
 package xyz.cofe.cxel;
 
 import xyz.cofe.cxel.ast.*;
-import xyz.cofe.cxel.tok.FloatNumberTok;
-import xyz.cofe.cxel.tok.IdTok;
-import xyz.cofe.cxel.tok.IntegerNumberTok;
-import xyz.cofe.cxel.tok.KeywordTok;
+import xyz.cofe.cxel.tok.*;
 import xyz.cofe.text.tparse.*;
 
 import java.util.ArrayList;
@@ -210,6 +207,7 @@ public class Parser {
               .another(number)
               .another(bool)
               .another(nullConst)
+              .another(atomic(StringTok.class,StringAST::new))
               .another(varRef)
               .another(unaryExression)
               .map( t -> (AST)t );

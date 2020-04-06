@@ -20,14 +20,14 @@ public class NumberAST extends ASTBase<NumberAST> {
 
     /**
      * Конструктор
-     * @param begin указатель на расположение
+     * @param ptr указатель на расположение
      * @param numberToken токен
      */
-    public NumberAST( TPointer begin, NumberTok numberToken) {
-        if(begin==null)throw new IllegalArgumentException("begin==null");
+    public NumberAST( TPointer ptr, NumberTok numberToken) {
+        if(ptr==null)throw new IllegalArgumentException("ptr==null");
         if( numberToken==null )throw new IllegalArgumentException("numberToken==null");
-        this.begin = begin;
-        this.end = begin.move(1);
+        this.begin = ptr;
+        this.end = ptr.move(1);
         this.numberToken = numberToken;
     }
 
@@ -46,14 +46,14 @@ public class NumberAST extends ASTBase<NumberAST> {
      * Возвращает токен соответствующий числу
      * @return токен
      */
-    public NumberTok numberToken(){ return numberToken; }
+    public NumberTok numberTok(){ return numberToken; }
 
     /**
      * Указывает токен соответствующий числу
      * @param t токен
      * @return клон с новым токеном
      */
-    public NumberAST numberToken(NumberTok t){
+    public NumberAST numberTok( NumberTok t){
         if( t==null )throw new IllegalArgumentException("t==null");
         NumberAST c = clone();
         c.numberToken = t;

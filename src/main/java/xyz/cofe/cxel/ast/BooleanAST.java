@@ -1,8 +1,6 @@
 package xyz.cofe.cxel.ast;
 
-import xyz.cofe.cxel.Keyword;
 import xyz.cofe.cxel.tok.KeywordTok;
-import xyz.cofe.cxel.tok.NumberTok;
 import xyz.cofe.text.tparse.TPointer;
 
 /**
@@ -16,7 +14,7 @@ public class BooleanAST extends ASTBase<BooleanAST> {
     protected BooleanAST( BooleanAST sample ) {
         super(sample);
         if( sample!=null ){
-            this.token = sample.token;
+            this.keywordTok = sample.keywordTok;
         }
     }
 
@@ -30,7 +28,7 @@ public class BooleanAST extends ASTBase<BooleanAST> {
         if( tok==null )throw new IllegalArgumentException("tok==null");
         this.begin = begin;
         this.end = begin.move(1);
-        this.token = tok;
+        this.keywordTok = tok;
     }
 
     /**
@@ -42,23 +40,23 @@ public class BooleanAST extends ASTBase<BooleanAST> {
     /**
      * токен соответствующий числу
      */
-    protected KeywordTok token;
+    protected KeywordTok keywordTok;
 
     /**
      * Возвращает токен соответствующий числу
      * @return токен
      */
-    public KeywordTok token(){ return token; }
+    public KeywordTok keywordTok(){ return keywordTok; }
 
     /**
      * Указывает токен соответствующий числу
      * @param t токен
      * @return клон с новым токеном
      */
-    public BooleanAST token( KeywordTok t ){
+    public BooleanAST keywordTok( KeywordTok t ){
         if( t==null )throw new IllegalArgumentException("t==null");
         BooleanAST c = clone();
-        c.token = t;
+        c.keywordTok = t;
         return c;
     }
 
@@ -67,7 +65,7 @@ public class BooleanAST extends ASTBase<BooleanAST> {
      * @return булево
      */
     public Boolean value(){
-        KeywordTok tok = token;
+        KeywordTok tok = keywordTok;
         if( tok!=null && tok.keyword!=null ){
             switch( tok.keyword ){
                 case True: return true;
@@ -81,7 +79,7 @@ public class BooleanAST extends ASTBase<BooleanAST> {
 
     @Override
     public String toString() {
-        return BooleanAST.class.getSimpleName()+" "+(token.text());
+        return BooleanAST.class.getSimpleName()+" "+(keywordTok.text());
     }
 
     @Override

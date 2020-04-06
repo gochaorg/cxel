@@ -1,6 +1,7 @@
 package xyz.cofe.cxel;
 
 import xyz.cofe.cxel.ast.*;
+import xyz.cofe.cxel.tok.StringTok;
 
 import java.util.function.Consumer;
 
@@ -22,6 +23,7 @@ public class ASTDump {
             c.decode(BooleanAST.class, n -> n.value().toString());
             c.decode(VarRefAST.class, VarRefAST::variable);
             c.decode(PropertyAST.class, PropertyAST::property);
+            c.decode(StringAST.class, n -> StringTok.toJavaLitteral(n.value()));
         } );
     }
 

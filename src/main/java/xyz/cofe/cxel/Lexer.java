@@ -46,6 +46,9 @@ public class Lexer {
     public static final GR<CharPointer, KeywordTok> keyword
         = Keyword.lexer();
 
+    /**
+     * Идентификатор
+     */
     public static final GR<CharPointer, IdTok> id
         = test( c->Character.isLetter(c) || c=='_' )
           .next( test(c->Character.isLetter(c) || c=='_' || Character.isDigit(c)).repeat().map(CToken::new) )
@@ -62,6 +65,7 @@ public class Lexer {
         new ArrayList(){{
             add(floatNumber);
             add(integerNumber);
+            add(StringTok.javascript);
             add(keyword);
             add(id);
             add(ws);

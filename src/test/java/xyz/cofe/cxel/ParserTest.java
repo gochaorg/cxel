@@ -15,46 +15,49 @@ import xyz.cofe.iter.Eterable;
 import xyz.cofe.text.tparse.TPointer;
 
 import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ParserTest {
-    @Test
-    public void test01(){
-        Optional<? extends AST> astRoot
-            = Parser.plusMinus.apply( Parser.source( "1 + 2 + 3" ) );
+    public void tryParse( String source, boolean eval ){
+        tryParse(source,eval,false,null);
+    }
+    public void tryParse( String source, boolean eval, boolean checkExpected, Object expected ){
+        TPointer psource = Parser.source(source);
 
-        System.out.println(astRoot);
+        System.out.println("--- tokens ---");
+        psource.tokens().forEach(System.out::println);
+
+        Optional<? extends AST> astRoot
+            = Parser.expression.apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
 
+        System.out.println("--- ast ---");
         ASTDump.build().dump( astRoot.get() );
 
-        Eval ev = new Eval();
-        Object evRes = ev.eval(astRoot.get());
-        System.out.println("eval result: "+evRes);
+        if( eval ){
+            Eval ev = new Eval();
+            Object evRes = ev.eval(astRoot.get());
+            System.out.println("eval result: " + evRes);
 
-        assertTrue( evRes!=null && evRes.equals(6L));
+            if( checkExpected ){
+                System.out.println("expected: "+expected);
+                assertTrue(Objects.equals(expected, evRes));
+            }
+        }
+    }
+
+    @Test
+    public void test01(){
+        tryParse("1 + 2 + 3",true, true, 6L);
+        tryParse( "1 * 2 + 3 - 4 / 5", false);
     }
 
     @Test
     public void test02(){
-        Optional<? extends AST> astRoot
-            = Parser.plusMinus.apply( Parser.source( "1 * 2 + 3 - 4 / 5" ) );
-
-        Assertions.assertTrue(astRoot!=null);
-        Assertions.assertTrue(astRoot.isPresent());
-
-        new TDump<AST>().configure( c -> {
-            c.setFollow(AST::nodes);
-            c.decode(BinaryOpAST.class, BinaryOpAST::opText);
-            c.decode(NumberAST.class, n -> n.value().toString());
-        } ).dump( astRoot.get() );
-    }
-
-    @Test
-    public void test03(){
         TPointer psource = Parser.source("-1");
 
         System.out.println("--- tokens ---");
@@ -281,5 +284,21 @@ public class ParserTest {
 
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);
+    }
+
+    @Test
+    public void str01(){
+        tryParse("\"abc\"", false);
+
+        System.out.println("...............");
+        tryParse("\"eval str\"", true);
+
+        System.out.println("...............");
+        tryParse("\"left\" + 'right'", true);
+    }
+
+    @Test
+    public void call02(){
+        tryParse("'abcdef'.substring( 1,3 )",false);
     }
 }
