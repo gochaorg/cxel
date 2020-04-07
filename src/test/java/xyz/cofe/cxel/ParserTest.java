@@ -259,31 +259,31 @@ public class ParserTest {
         System.out.println("--- ast ---");
         ASTDump.build().dump( astRoot.get() );
 
-        Eval ev = new Eval();
-        ev.context().bind("fn2", new Fn2<Object,Object,Object>() {
-            @Override
-            public Object apply( Object a0, Object a1 ){
-                System.out.println("call fn2 "+a0+", "+a1);
-                return a0;
-            }
-        });
-        ev.context().bind("fn1", new Fn1() {
-            @Override
-            public Object apply( Object a0 ){
-                System.out.println("call fn1 "+a0);
-                return a0;
-            }
-        });
-        ev.context().bind("fn0", new Fn0() {
-            @Override
-            public Object apply(){
-                System.out.println("call fn0");
-                return 0;
-            }
-        });
-
-        Object evRes = ev.eval(astRoot.get());
-        System.out.println("eval result: "+evRes);
+//        Eval ev = new Eval();
+//        ev.context().bind("fn2", new Fn2<Object,Object,Object>() {
+//            @Override
+//            public Object apply( Object a0, Object a1 ){
+//                System.out.println("call fn2 "+a0+", "+a1);
+//                return a0;
+//            }
+//        });
+//        ev.context().bind("fn1", new Fn1() {
+//            @Override
+//            public Object apply( Object a0 ){
+//                System.out.println("call fn1 "+a0);
+//                return a0;
+//            }
+//        });
+//        ev.context().bind("fn0", new Fn0() {
+//            @Override
+//            public Object apply(){
+//                System.out.println("call fn0");
+//                return 0;
+//            }
+//        });
+//
+//        Object evRes = ev.eval(astRoot.get());
+//        System.out.println("eval result: "+evRes);
     }
 
     @Test
@@ -299,6 +299,11 @@ public class ParserTest {
 
     @Test
     public void call02(){
-        tryParse("'abcdef'.substring( 1,3 )",false);
+        tryParse("'abcdef'.substring( 1,3 )",true);
+    }
+
+    @Test
+    public void compare(){
+        tryParse("'af' == 'af'",true);
     }
 }

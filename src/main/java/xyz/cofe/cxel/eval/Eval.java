@@ -17,23 +17,25 @@ import java.util.function.Supplier;
  * Непосредственная интерпретация AST
  */
 public class Eval {
+    //region create and configure
     public Eval(){
         context = new EvalContext();
     }
-
     public Eval(EvalContext ctx){
         if( ctx==null )throw new IllegalArgumentException( "ctx==null" );
         context = ctx;
     }
-
     public Eval configure( Consumer<Eval> conf ){
         if( conf==null )throw new IllegalArgumentException( "conf==null" );
         conf.accept(this);
         return this;
     }
+    //endregion
 
+    //region context
     protected final EvalContext context;
     public EvalContext context(){ return context; }
+    //endregion
 
     /**
      * Интерпретация ast дерева
@@ -462,26 +464,24 @@ public class Eval {
     protected Object call( CallAST ast ){
         AST base = ast.base();
         if( base instanceof VarRefAST ){
-            Object fn = eval(base);
-            if( fn==null )throw new RuntimeException("can't call null object");
+            List<Object> args = new ArrayList<>();
+            for( AST arg : ast.args() ){
+                args.add( eval(arg) );
+            }
+
+            return context.call(null, ((VarRefAST) base).variable(), args );
+        }else if( base instanceof PropertyAST ){
+            PropertyAST past = (PropertyAST)base;
+            String propName = past.property();
+
+            Object obj = eval(past.base());
 
             List<Object> args = new ArrayList<>();
             for( AST arg : ast.args() ){
                 args.add( eval(arg) );
             }
 
-            if( fn instanceof Supplier ){
-                return ((Supplier) fn).get();
-            }else if( fn instanceof Function ){
-                return ((Function) fn).apply( args.size()>0 ? args.get(0) : null );
-            }else if( fn instanceof BiFunction ){
-                return ((BiFunction) fn).apply(
-                    args.size()>0 ? args.get(0) : null,
-                    args.size()>1 ? args.get(1) : null
-                );
-            }
-
-            throw new RuntimeException("can't call "+fn.getClass());
+            return context.call(obj,propName,args);
         }
         return null;
     }
