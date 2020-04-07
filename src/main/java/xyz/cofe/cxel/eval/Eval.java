@@ -5,9 +5,7 @@ import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.BitCount;
 import xyz.cofe.num.CommonBase;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,7 +45,7 @@ public class Eval {
         if( ast instanceof UnaryOpAST ){
             return unary( (UnaryOpAST)ast );
         }else if( ast instanceof BinaryOpAST ){
-            return binary( (BinaryOpAST) ast );
+            return callOperator( (BinaryOpAST) ast );
         }else if( ast instanceof NumberAST ){
             return number( (NumberAST)ast );
         }else if( ast instanceof BooleanAST ){
@@ -139,6 +137,12 @@ public class Eval {
     }
 
     //region binary: + - * /
+    private Object callOperator( BinaryOpAST op ){
+        Object vLeft = eval(op.left());
+        Object vRight = eval(op.right());
+        return context.call(null,op.opText(), Arrays.asList(vLeft,vRight));
+    }
+
     protected Object plus( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         Object vRight = eval(op.right());

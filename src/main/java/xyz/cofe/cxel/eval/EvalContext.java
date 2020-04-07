@@ -1,15 +1,14 @@
 package xyz.cofe.cxel.eval;
 
+import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.fn.Tuple2;
 import xyz.cofe.iter.Eterable;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -193,6 +192,32 @@ public class EvalContext {
         if( method==null )throw new IllegalArgumentException( "method==null" );
         bindStaticMethod(null, method);
     }
+
+    /**
+     * Добавление статичных методов. <br>
+     * Методы должны быть помечены аннотацией {@link FnName} и должны быть статичными. <br>
+     * Пример: <br>
+     * <code>
+     * &#64;FnName("+") <br>
+     * public static int add( int a, int b ){ <br>
+     *   return a+b; <br>
+     * }
+     * </code>
+     * @param cls Класс контейнер статичных методов
+     */
+    public void bindStaticMethods( Class<?> cls ){
+        if( cls==null )throw new IllegalArgumentException( "cls==null" );
+        for( Method m : cls.getMethods() ){
+            if( (m.getModifiers() & Modifier.STATIC) != Modifier.STATIC ){
+                continue;
+            }
+
+            FnName fnName = m.getAnnotation(FnName.class);
+            if( fnName==null )continue;
+
+            bindStaticMethod(fnName.value(), m);
+        }
+    }
     //endregion
 
     //region Вызов метода
@@ -360,19 +385,13 @@ public class EvalContext {
                         rcall.getArgs().add( ArgPass.unpassable(pi, p.getType(), null));
                     }else{
                         Class<?> pt = p.getType();
+
                         Object arg = args.get(pi);
-                        if( arg==null ){
-                            if( pt.isPrimitive() ){
-                                // Значение параметра не может быть null
-                                rcall.getArgs().add( ArgPass.unpassable(pi,pt,null) );
-                            }else{
-                                // Значение параметра совместимо с null
-                                // Здесь не передается информация о типе аргмента
-                                // и соот данный варинат вызова должен быть менее релевантным
-                                rcall.getArgs().add( ArgPass.invariant(pi,pt,null) );
-                            }
+                        Class<?> at = arg!=null ? arg.getClass() : Object.class;
+                        if( arg==null && pt.isPrimitive() ){
+                            // Значение параметра не может быть null
+                            rcall.getArgs().add( ArgPass.unpassable(pi,pt,null) );
                         }else {
-                            Class<?> at = arg.getClass();
                             if( pt.equals(at) ){
                                 // Полное совпадение типа
                                 rcall.getArgs().add( ArgPass.invariant(pi,pt,arg) );
@@ -385,9 +404,17 @@ public class EvalContext {
                                     NumCast ncast = tryCast(pt,(Number)arg);
                                     if( ncast!=null ){
                                         if( ncast.sameType ){
-                                            rcall.getArgs().add(ArgPass.invariant(pi, pt, ncast.targetValue));
+                                            rcall.getArgs().add(
+                                                ArgPass.invariant(pi, pt, ncast.targetValue)
+                                                    .primitiveCast(true)
+                                                    .castLooseData(false)
+                                            );
                                         }else {
-                                            rcall.getArgs().add(ArgPass.covar(pi, pt, ncast.targetValue));
+                                            rcall.getArgs().add(
+                                                ArgPass.covar(pi, pt, ncast.targetValue)
+                                                    .primitiveCast(true)
+                                                    .castLooseData(ncast.looseData)
+                                            );
                                         }
                                     }else {
                                         Object v = pt.cast(arg);
@@ -422,14 +449,18 @@ public class EvalContext {
                 int argsCasing = Math.abs(c.getMethod().getParameterCount() - c.getArgs().size());
 
                 int invCalls = (int)c.getArgs().stream().filter(ArgPass::isInvarant).count();
+                int primCastCalls = (int)c.getArgs().stream().filter(ArgPass::isPrimitiveCast).count();
+                int loseDataCalls = (int)c.getArgs().stream().filter(ArgPass::isCastLooseData).count();
                 int coCalls = (int)c.getArgs().stream().filter(ArgPass::isCovariant).count();
                 int implCalls = (int)c.getArgs().stream().filter(ArgPass::isImplicit).count();
 
                 int score = (int)(
                     invCalls*Math.pow(pcount,0) +
-                    coCalls*Math.pow(pcount,1) +
-                    implCalls*Math.pow(pcount,2) +
-                    argsCasing*Math.pow(pcount,3)
+                    primCastCalls*Math.pow(pcount,1) +
+                    coCalls*Math.pow(pcount,2) +
+                    implCalls*Math.pow(pcount,3) +
+                    loseDataCalls*Math.pow(pcount,4) +
+                    argsCasing*Math.pow(pcount,5)
                 );
 
                 return Tuple2.of(c,score);
@@ -464,4 +495,16 @@ public class EvalContext {
         return rcalls.get(0).call();
     }
     //endregion
+
+    {
+        // Добавление стандартных операторов
+        bindStaticMethods(EqualsOprations.class);
+        bindStaticMethods(BoolOperations.class);
+        bindStaticMethods(ByteOperators.class);
+        bindStaticMethods(ShortOperators.class);
+        bindStaticMethods(IntegerOperators.class);
+        bindStaticMethods(LongOperators.class);
+        bindStaticMethods(FloatOperators.class);
+        bindStaticMethods(DoubleOperators.class);
+    }
 }

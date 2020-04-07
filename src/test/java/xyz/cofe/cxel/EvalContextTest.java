@@ -2,6 +2,7 @@ package xyz.cofe.cxel;
 
 import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.eval.EvalContext;
+import xyz.cofe.cxel.eval.op.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -89,5 +90,28 @@ public class EvalContextTest {
         }catch( NoSuchMethodException e ){
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void numTest(){
+        EvalContext ctx = new EvalContext();
+        ctx.bindStaticMethods(ByteOperators.class);
+        ctx.bindStaticMethods(ShortOperators.class);
+        ctx.bindStaticMethods(IntegerOperators.class);
+        ctx.bindStaticMethods(LongOperators.class);
+        ctx.bindStaticMethods(FloatOperators.class);
+        ctx.bindStaticMethods(DoubleOperators.class);
+
+        List<Object> args = new ArrayList<>();
+        args.add( 10 );
+        args.add( 12 );
+        Object res = ctx.call(null,"+", args );
+        System.out.println("res = "+res+(res!=null ? " : "+res.getClass() : ""));
+
+        args.clear();
+        args.add( 23L );
+        args.add( 24L );
+        res = ctx.call(null,"+", args );
+        System.out.println("res = "+res+(res!=null ? " : "+res.getClass() : ""));
     }
 }

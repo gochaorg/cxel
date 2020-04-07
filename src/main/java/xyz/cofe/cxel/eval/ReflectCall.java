@@ -8,6 +8,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Вариант вызова метода
+ */
 public class ReflectCall {
     public ReflectCall(){
     }
@@ -63,7 +66,6 @@ public class ReflectCall {
     //endregion
 
     //region callable() : boolean
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean callable(){
         List<ArgPass> args = getArgs();
         if( args == null ) return false;
