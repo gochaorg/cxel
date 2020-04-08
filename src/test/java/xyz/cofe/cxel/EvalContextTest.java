@@ -2,6 +2,7 @@ package xyz.cofe.cxel;
 
 import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.eval.EvalContext;
+import xyz.cofe.cxel.eval.FnName;
 import xyz.cofe.cxel.eval.op.*;
 
 import java.lang.reflect.Method;
@@ -114,4 +115,9 @@ public class EvalContextTest {
         res = ctx.call(null,"+", args );
         System.out.println("res = "+res+(res!=null ? " : "+res.getClass() : ""));
     }
+
+    @FnName({"|","||"})
+    public static boolean or( boolean a, boolean b ){ return a || b; }
+
+
 }

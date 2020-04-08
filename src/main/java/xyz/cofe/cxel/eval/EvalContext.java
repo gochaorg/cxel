@@ -176,9 +176,7 @@ public class EvalContext {
             }
 
             StaticMethods stMeths = (StaticMethods)oStMeths;
-            if( !stMeths.contains(method) ){
-                stMeths.add(method);
-            }
+            stMeths.add(method);
         } finally{
             rwlock.writeLock().unlock();
         }
@@ -213,9 +211,9 @@ public class EvalContext {
             }
 
             FnName fnName = m.getAnnotation(FnName.class);
-            if( fnName==null )continue;
-
-            bindStaticMethod(fnName.value(), m);
+            for( String name : fnName.value() ){
+                bindStaticMethod(name, m);
+            }
         }
     }
     //endregion
@@ -352,11 +350,11 @@ public class EvalContext {
     public Object call( Object inst, String method, List<Object> args ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
 
-        List<Method> methods = null;
+        Eterable<Method> methods = null;
 
         if( inst!=null ){
-            methods = Eterable.of(inst.getClass().getMethods()).filter( m->m.getName().equals(method) ).toList();
-            if( methods.isEmpty() ){
+            methods = Eterable.of(inst.getClass().getMethods()).filter( m->m.getName().equals(method) );
+            if( methods.count()<1 ){
                 throw new RuntimeException("method '"+method+"' not found in "+inst.getClass());
             }
         }else{
@@ -364,14 +362,14 @@ public class EvalContext {
             if( !m.isPresent() || !(m.get() instanceof StaticMethods) ){
                 throw new RuntimeException("function '"+method+"' not found");
             }
-            methods = ((StaticMethods)m.get());
+            methods = Eterable.of((StaticMethods)m.get());
         }
 
-        if( methods.isEmpty() ){
+        if( methods.count()<1 ){
             throw new RuntimeException("method/function '"+method+"' not found");
         }
 
-        List<ReflectCall> rcalls = methods.stream().map( m->{
+        List<ReflectCall> rcalls = methods.map( m->{
             ReflectCall rcall = null;
             Parameter[] params = m.getParameters();
             if( params.length==0 ){
@@ -431,7 +429,7 @@ public class EvalContext {
             }
             return rcall;
         }).filter(ReflectCall::callable)
-        .collect(Collectors.toList());
+        .toList();
 
         if( rcalls.isEmpty() ){
             throw new RuntimeException(
