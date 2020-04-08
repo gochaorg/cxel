@@ -1,5 +1,6 @@
 package xyz.cofe.cxel.eval;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

@@ -506,5 +506,6 @@ public class EvalContext {
         bindStaticMethods(LongOperators.class);
         bindStaticMethods(FloatOperators.class);
         bindStaticMethods(DoubleOperators.class);
+        bindStaticMethods(UnaryOperations.class);
     }
 }

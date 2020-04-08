@@ -51,8 +51,11 @@ def top = { lt, rt ->
   ['float','Float'],
   ['double','Double'],
 ].each { lst ->
+	println "-"*40
+	println lst
+	println "-"*40
 	[ '+', '-', '*', '/' ].each { op ->
-		numt.findAll { it.name in ['byte','Byte'] }.each { lt ->
+		numt.findAll { it.name in lst }.each { lt ->
 			numt.each { rt ->
 				def t = top(lt.name, rt.name)
 				def ct = t

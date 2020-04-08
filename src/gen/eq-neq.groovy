@@ -51,7 +51,7 @@ def cmpOp = { op, ltype, rtype ->
 }
 
 ['<','<=','>=','>'].each { op ->
-	numt.findAll { it.name=='Integer' }.each { a ->
+	numt.findAll { it.name=='Byte' }.each { a ->
 		numt.each { b -> 
 			//println " "*4+cmpOp( '==', a, b )
 			//println " "*4+cmpOp( '!=', a, b )

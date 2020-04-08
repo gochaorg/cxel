@@ -4,12 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.ast.AST;
-import xyz.cofe.cxel.ast.BinaryOpAST;
-import xyz.cofe.cxel.ast.NumberAST;
 import xyz.cofe.cxel.eval.Eval;
-import xyz.cofe.fn.Fn0;
-import xyz.cofe.fn.Fn1;
-import xyz.cofe.fn.Fn2;
 import xyz.cofe.fn.Pair;
 import xyz.cofe.iter.Eterable;
 import xyz.cofe.text.tparse.TPointer;
@@ -258,32 +253,6 @@ public class ParserTest {
 
         System.out.println("--- ast ---");
         ASTDump.build().dump( astRoot.get() );
-
-//        Eval ev = new Eval();
-//        ev.context().bind("fn2", new Fn2<Object,Object,Object>() {
-//            @Override
-//            public Object apply( Object a0, Object a1 ){
-//                System.out.println("call fn2 "+a0+", "+a1);
-//                return a0;
-//            }
-//        });
-//        ev.context().bind("fn1", new Fn1() {
-//            @Override
-//            public Object apply( Object a0 ){
-//                System.out.println("call fn1 "+a0);
-//                return a0;
-//            }
-//        });
-//        ev.context().bind("fn0", new Fn0() {
-//            @Override
-//            public Object apply(){
-//                System.out.println("call fn0");
-//                return 0;
-//            }
-//        });
-//
-//        Object evRes = ev.eval(astRoot.get());
-//        System.out.println("eval result: "+evRes);
     }
 
     @Test
