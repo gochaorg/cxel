@@ -21,12 +21,18 @@ public enum Keyword {
     /**
      * Открытая круглая скобка
      */
-    OpenBracket("("),
+    OpenParenthes("("),
 
     /**
      * Закрытая круглая скобка
      */
-    CloseBracket(")"),
+    CloseParenthes(")"),
+
+    /** Открытая квадратная скобка */ OpenBracket("["),
+    /** Закрытая квадратная скобка */ CloseBracket("]"),
+
+    /** Открытая фигурная скобка */ OpenBrace("{"),
+    /** Закрытая фигурная скобка */ CloseBrace("}"),
 
     /** Равенство */ Equals("=="),
     /** Не равенство */ NotEquals("!="),
