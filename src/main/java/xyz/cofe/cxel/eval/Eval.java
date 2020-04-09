@@ -1,5 +1,6 @@
 package xyz.cofe.cxel.eval;
 
+import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.BitCount;
@@ -60,8 +61,10 @@ public class Eval {
             return property( (PropertyAST) ast );
         }else if( ast instanceof CallAST ){
             return call( (CallAST) ast );
+        }else if( ast instanceof IndexAST ){
+            return index( (IndexAST) ast );
         }
-        throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
+        throw new EvalError("can't evaluate undefined ast: "+ast.getClass());
     }
 
     //region eval literal : number, bool, nul, str
@@ -79,107 +82,23 @@ public class Eval {
     }
     //endregion
 
-    //region unary()
     protected Object callOperator( UnaryOpAST op ){
         Object v = eval(op.operand());
         return context.call(null,op.opText(), Collections.singletonList(v));
     }
-    //endregion
 
-    //region binary()
     private Object callOperator( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         Object vRight = eval(op.right());
         return context.call(null,op.opText(), Arrays.asList(vLeft,vRight));
     }
-    //endregion
-
-    //region math operations
-    /**
-     * Сложение чисел
-     * @param n1 первое число
-     * @param n2 второе число
-     * @return Сумма
-     */
-    private static Number plus( Number n1, Number n2 ){
-        if( n1==null )throw new IllegalArgumentException( "n1==null" );
-        if( n2==null )throw new IllegalArgumentException( "n2==null" );
-        return BaseNumbers.commonBase(n1,n2).add();
-    }
-
-    /**
-     * Вычитание чисел
-     * @param n1 первое число
-     * @param n2 второе число
-     * @return Разница
-     */
-    private static Number minus( Number n1, Number n2 ){
-        if( n1==null )throw new IllegalArgumentException( "n1==null" );
-        if( n2==null )throw new IllegalArgumentException( "n2==null" );
-        return BaseNumbers.commonBase(n1,n2).sub();
-    }
-
-    /**
-     * Умножение чисел
-     * @param n1 первое число
-     * @param n2 второе число
-     * @return Произведение
-     */
-    private static Number multiple( Number n1, Number n2 ){
-        if( n1==null )throw new IllegalArgumentException( "n1==null" );
-        if( n2==null )throw new IllegalArgumentException( "n2==null" );
-        return BaseNumbers.commonBase(n1,n2).mul();
-    }
-
-    /**
-     * Деление чисел
-     * @param n1 первое число
-     * @param n2 второе число
-     * @return Произведение
-     */
-    private static Number divide( Number n1, Number n2 ){
-        if( n1==null )throw new IllegalArgumentException( "n1==null" );
-        if( n2==null )throw new IllegalArgumentException( "n2==null" );
-        return BaseNumbers.commonBase(n1,n2).div();
-    }
-
-    /**
-     * Сравнение чисел
-     * @param n1 первое число
-     * @param n2 второе число
-     * @return Произведение
-     */
-    private static int cmp( Number n1, Number n2 ){
-        if( n1==null )throw new IllegalArgumentException( "n1==null" );
-        if( n2==null )throw new IllegalArgumentException( "n2==null" );
-
-        CommonBase cbase = BaseNumbers.commonBase(n1,n2);
-
-        boolean less = cbase.less();
-        if( less )return -1;
-
-        boolean eq = cbase.equals();
-        if( eq )return 0;
-
-        boolean more = cbase.more();
-        if( more )return 1;
-
-        throw new RuntimeException("bug at compare numbers");
-    }
-    //endregion
 
     protected Object variable( VarRefAST ast ){
         return context.read(ast.variable());
     }
     protected Object property( PropertyAST ast ){
         Object obj = eval(ast.base());
-        if( obj==null )throw new IllegalArgumentException("can't read property '"+ast.property()+"' of null");
-
-        if( obj instanceof Map ){
-            return ((Map)obj).get(ast.property());
-        }
-
-        throw new RuntimeException("can't resolve property '"+ast.property()+"' for obj of type "+obj.getClass());
+        return context.get(obj,ast.property());
     }
     protected Object call( CallAST ast ){
         AST base = ast.base();
@@ -204,5 +123,10 @@ public class Eval {
             return context.call(obj,propName,args);
         }
         return null;
+    }
+    protected Object index( IndexAST ast ){
+        Object obj = eval(ast.base());
+        Object idx = eval(ast.index());
+        return context.getAt(obj,idx);
     }
 }

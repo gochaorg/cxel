@@ -1,12 +1,15 @@
 package xyz.cofe.cxel.eval;
 
+import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.fn.Tuple2;
 import xyz.cofe.iter.Eterable;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -137,9 +140,10 @@ public class EvalContext {
      * @param name имя переменной
      * @param value значение
      */
-    public void bind( String name, Object value ){
+    public EvalContext bind( String name, Object value ){
         if( name==null )throw new IllegalArgumentException( "name==null" );
         write(name,value);
+        return this;
     }
 
     /**
@@ -151,7 +155,7 @@ public class EvalContext {
         if( name==null )throw new IllegalArgumentException( "name==null" );
         Optional<Object> value = tryRead(name);
         if( value==null || !value.isPresent() ){
-            throw new RuntimeException("variable '"+name+"' not found");
+            throw new EvalError("variable '"+name+"' not found");
         }
         return value.get();
     }
@@ -163,7 +167,7 @@ public class EvalContext {
      * @param name имя функции, может быть null, тогда будет использоваться имя метода
      * @param method метод
      */
-    public void bindStaticMethod( String name, Method method ){
+    public EvalContext bindStaticMethod( String name, Method method ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
         if( name==null )name = method.getName();
         ReadWriteLock rwlock = rwlockOf(name);
@@ -180,15 +184,16 @@ public class EvalContext {
         } finally{
             rwlock.writeLock().unlock();
         }
+        return this;
     }
 
     /**
      * Добавление статичного метода как глобальную функцию
      * @param method метод
      */
-    public void bindStaticMethod( Method method ){
+    public EvalContext bindStaticMethod( Method method ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
-        bindStaticMethod(null, method);
+        return bindStaticMethod(null, method);
     }
 
     /**
@@ -203,7 +208,7 @@ public class EvalContext {
      * </code>
      * @param cls Класс контейнер статичных методов
      */
-    public void bindStaticMethods( Class<?> cls ){
+    public EvalContext bindStaticMethods( Class<?> cls ){
         if( cls==null )throw new IllegalArgumentException( "cls==null" );
         for( Method m : cls.getMethods() ){
             if( (m.getModifiers() & Modifier.STATIC) != Modifier.STATIC ){
@@ -215,6 +220,7 @@ public class EvalContext {
                 bindStaticMethod(name, m);
             }
         }
+        return this;
     }
     //endregion
 
@@ -355,18 +361,18 @@ public class EvalContext {
         if( inst!=null ){
             methods = Eterable.of(inst.getClass().getMethods()).filter( m->m.getName().equals(method) );
             if( methods.count()<1 ){
-                throw new RuntimeException("method '"+method+"' not found in "+inst.getClass());
+                throw new EvalError("method '"+method+"' not found in "+inst.getClass());
             }
         }else{
             Optional<Object> m = tryRead(method);
             if( !m.isPresent() || !(m.get() instanceof StaticMethods) ){
-                throw new RuntimeException("function '"+method+"' not found");
+                throw new EvalError("function '"+method+"' not found");
             }
             methods = Eterable.of((StaticMethods)m.get());
         }
 
         if( methods.count()<1 ){
-            throw new RuntimeException("method/function '"+method+"' not found");
+            throw new EvalError("method/function '"+method+"' not found");
         }
 
         List<ReflectCall> rcalls = methods.map( m->{
@@ -432,7 +438,7 @@ public class EvalContext {
         .toList();
 
         if( rcalls.isEmpty() ){
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
                 " callable method not found"
             );
@@ -474,13 +480,13 @@ public class EvalContext {
 
             if( minScore.size()>1 ){
                 // найдены два или более равнозначных варианта
-                throw new RuntimeException(
+                throw new EvalError(
                     "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
                         " ambiguous methods calls found"
                 );
             }else if( minScore.size()<1 ){
                 // нету ни одного подходящего варианта
-                throw new RuntimeException(
+                throw new EvalError(
                     "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
                         " callable method not found"
                 );
@@ -493,6 +499,67 @@ public class EvalContext {
         return rcalls.get(0).call();
     }
     //endregion
+
+    /**
+     * Чтение свойства
+     * @param base Объект, чье свойство интересует
+     * @param propertyName имя свойства
+     * @return значение свойства
+     */
+    public Object get( Object base, String propertyName ){
+        if( propertyName==null )throw new IllegalArgumentException( "propertyName==null" );
+        if( base==null )throw new IllegalArgumentException( "can't read property '"+propertyName+"' of null" );
+        if( base instanceof Map ){
+            return ((Map<?,?>)base).get(propertyName);
+        }
+
+        try{
+            BeanInfo bi = Introspector.getBeanInfo(base.getClass());
+            for( PropertyDescriptor pd : bi.getPropertyDescriptors() ){
+                if( propertyName.equals(pd.getName()) && pd.getReadMethod()!=null ){
+                    Method m = pd.getReadMethod();
+                    Object r = m.invoke(base);
+                    return r;
+                }
+            }
+        }catch( InvocationTargetException | IllegalAccessException | IntrospectionException e ){
+            throw new EvalError(e);
+        }
+
+        throw new EvalError("can't resolve property '"+propertyName+"' for obj of type "+base.getClass());
+    }
+
+    /**
+     * Чтение элемента массива
+     * @param base Объект (список или массив), чей элемент интересует
+     * @param idx индекс элемента
+     * @return значение
+     */
+    public Object getAt( Object base, Object idx ){
+        if( base==null )throw new IllegalArgumentException( "can't read index value '"+idx+"' of null" );
+
+        if( base instanceof Map ){
+            return ((Map<?,?>)base).get(idx);
+        }
+
+        if( base instanceof List ){
+            if( idx instanceof Number ){
+                return ((List<?>)base).get(((Number)idx).intValue());
+            }
+        }
+
+        if( base.getClass().isArray() ){
+            if( idx instanceof Number ){
+                Array.get(base, ((Number)idx).intValue() );
+            }
+        }
+
+        if( idx instanceof String ){
+            return get(base, (String)idx);
+        }
+
+        throw new EvalError("can't get element with idx="+idx+" for obj of type "+base.getClass());
+    }
 
     {
         // Добавление стандартных операторов
