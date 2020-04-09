@@ -577,6 +577,7 @@ public class EvalContext {
         throw new EvalError("can't get element with idx="+idx+" for obj of type "+base.getClass());
     }
 
+    //region Добавление стандартных операторов
     {
         // Добавление стандартных операторов
         bindStaticMethods(EqualsOprations.class);
@@ -589,6 +590,7 @@ public class EvalContext {
         bindStaticMethods(DoubleOperators.class);
         bindStaticMethods(UnaryOperations.class);
     }
+    //endregion
 
     /**
      * Интерпретация числа
