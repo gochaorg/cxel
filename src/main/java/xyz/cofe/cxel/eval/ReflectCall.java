@@ -1,5 +1,7 @@
 package xyz.cofe.cxel.eval;
 
+import xyz.cofe.cxel.EvalError;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -95,7 +97,7 @@ public class ReflectCall {
 
     //region call()
     public Object call(){
-        if( !callable() ) throw new RuntimeException("can't calling");
+        if( !callable() ) throw new EvalError("can't calling");
 
         Method method = getMethod();
         Object[] params = new Object[method.getParameterCount()];
@@ -110,7 +112,7 @@ public class ReflectCall {
         try{
             return method.invoke(inst, params);
         }catch( IllegalAccessException | InvocationTargetException e ){
-            throw new RuntimeException(e);
+            throw new EvalError(e);
         }
     }
     //endregion

@@ -1,5 +1,6 @@
 package xyz.cofe.cxel.ast;
 
+import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.tok.KeywordTok;
 import xyz.cofe.text.tparse.TPointer;
 
@@ -71,10 +72,10 @@ public class BooleanAST extends ASTBase<BooleanAST> {
                 case True: return true;
                 case False: return false;
                 default:
-                    throw new RuntimeException("can't eval token "+tok.keyword+" as boolean");
+                    throw new EvalError("can't eval token "+tok.keyword+" as boolean");
             }
         }
-        throw new RuntimeException("can't eval token");
+        throw new EvalError("can't eval token");
     }
 
     @Override

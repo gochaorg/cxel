@@ -1,5 +1,6 @@
 package xyz.cofe.cxel.eval;
 
+import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.num.BaseNumbers;
 import xyz.cofe.num.CommonBase;
@@ -60,7 +61,7 @@ public class Eval1 {
         }else if( ast instanceof CallAST ){
             return call( (CallAST) ast );
         }
-        throw new RuntimeException("can't evaluate undefined ast: "+ast.getClass());
+        throw new EvalError("can't evaluate undefined ast: "+ast.getClass());
     }
 
     //region eval literal : number, bool, nul, str
@@ -84,7 +85,7 @@ public class Eval1 {
             case Minus: return unaryMinus(op);
             case Not: return unaryNot(op);
             default:
-                throw new RuntimeException(
+                throw new EvalError(
                     "can't eval unary for keyword "+op.opKeyword()+" ("+op.opText()+")"
                 );
         }
@@ -92,7 +93,7 @@ public class Eval1 {
     protected Object unaryMinus( UnaryOpAST op ){
         Object val = eval(op.operand());
         if( !(val instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval unary minus for not Number ("+
                     (val!=null ? val.getClass() : "null")+
                     ")");
@@ -103,7 +104,7 @@ public class Eval1 {
     protected Object unaryNot( UnaryOpAST op ){
         Object val = eval(op.operand());
         if( !(val instanceof Boolean) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval unary not for not Boolean ("+
                     (val!=null ? val.getClass() : "null")+
                     ")");
@@ -129,7 +130,7 @@ public class Eval1 {
             case And: return and(op);
             case Or: return or(op);
             default:
-                throw new RuntimeException(
+                throw new EvalError(
                     "can't eval binary for keyword "+op.opKeyword()+" ("+op.opText()+")"
                 );
         }
@@ -162,7 +163,7 @@ public class Eval1 {
             return str;
         }
 
-        throw new RuntimeException("can't eval plus for "+
+        throw new EvalError("can't eval plus for "+
            (vLeft==null ? "null" : vLeft.getClass())+" and "+
            (vRight==null ? "null" : vRight.getClass())
         );
@@ -170,14 +171,14 @@ public class Eval1 {
     protected Object minus( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval minus for not Number - left operand ("+
                     (vLeft!=null ? vLeft.getClass() : "null")+
                     ")");
 
         Object vRight = eval(op.right());
         if( !(vRight instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval minus for not Number - right operand ("+
                     (vRight!=null ? vRight.getClass() : "null")+
                     ")");
@@ -187,14 +188,14 @@ public class Eval1 {
     protected Object multiple( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval multiple for not Number - left operand ("+
                     (vLeft!=null ? vLeft.getClass() : "null")+
                     ")");
 
         Object vRight = eval(op.right());
         if( !(vRight instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval multiple for not Number - right operand ("+
                     (vRight!=null ? vRight.getClass() : "null")+
                     ")");
@@ -204,14 +205,14 @@ public class Eval1 {
     protected Object divide( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval divide for not Number - left operand ("+
                     (vLeft!=null ? vLeft.getClass() : "null")+
                     ")");
 
         Object vRight = eval(op.right());
         if( !(vRight instanceof Number) )
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval divide for not Number - right operand ("+
                     (vRight!=null ? vRight.getClass() : "null")+
                     ")");
@@ -238,7 +239,7 @@ public class Eval1 {
             return ((Comparable) vLeft).compareTo(vRight) < 0;
         }
 
-        throw new RuntimeException("can't compare for "+vLeft.getClass()+" < "+vRight.getClass());
+        throw new EvalError("can't compare for "+vLeft.getClass()+" < "+vRight.getClass());
     }
     @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
     protected Object lessOrEquals( BinaryOpAST op ){
@@ -258,7 +259,7 @@ public class Eval1 {
             return ((Comparable) vLeft).compareTo(vRight) <= 0;
         }
 
-        throw new RuntimeException("can't compare for "+vLeft.getClass()+" <= "+vRight.getClass());
+        throw new EvalError("can't compare for "+vLeft.getClass()+" <= "+vRight.getClass());
     }
     @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
     protected Object more( BinaryOpAST op ){
@@ -278,7 +279,7 @@ public class Eval1 {
             return ((Comparable) vLeft).compareTo(vRight) > 0;
         }
 
-        throw new RuntimeException("can't compare for "+vLeft.getClass()+" > "+vRight.getClass());
+        throw new EvalError("can't compare for "+vLeft.getClass()+" > "+vRight.getClass());
     }
     @SuppressWarnings({ "ConstantConditions", "unchecked", "rawtypes" })
     protected Object moreOrEquals( BinaryOpAST op ){
@@ -298,7 +299,7 @@ public class Eval1 {
             return ((Comparable) vLeft).compareTo(vRight) >= 0;
         }
 
-        throw new RuntimeException("can't compare for "+vLeft.getClass()+" >= "+vRight.getClass());
+        throw new EvalError("can't compare for "+vLeft.getClass()+" >= "+vRight.getClass());
     }
     @SuppressWarnings({ "ConstantConditions" })
     protected Object equals( BinaryOpAST op ){
@@ -338,7 +339,7 @@ public class Eval1 {
         Object vLeft = eval(op.left());
 
         if( !(vLeft instanceof Boolean) ){
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval and for not Boolean - left operand ("+
                     (vLeft!=null ? vLeft.getClass() : "null")+
                     ")");
@@ -346,7 +347,7 @@ public class Eval1 {
 
         Object vRight = eval(op.right());
         if( !(vRight instanceof Boolean) ){
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval and for not Boolean - right operand ("+
                     (vRight!=null ? vRight.getClass() : "null")+
                     ")");
@@ -357,7 +358,7 @@ public class Eval1 {
     protected Object or( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         if( !(vLeft instanceof Boolean) ){
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval or for not Boolean - left operand ("+
                     (vLeft!=null ? vLeft.getClass() : "null")+
                     ")");
@@ -365,7 +366,7 @@ public class Eval1 {
 
         Object vRight = eval(op.right());
         if( !(vRight instanceof Boolean) ){
-            throw new RuntimeException(
+            throw new EvalError(
                 "can't eval or for not Boolean - right operand ("+
                     (vRight!=null ? vRight.getClass() : "null")+
                     ")");
@@ -447,7 +448,7 @@ public class Eval1 {
         boolean more = cbase.more();
         if( more )return 1;
 
-        throw new RuntimeException("bug at compare numbers");
+        throw new EvalError("bug at compare numbers");
     }
     //endregion
 
@@ -462,7 +463,7 @@ public class Eval1 {
             return ((Map)obj).get(ast.property());
         }
 
-        throw new RuntimeException("can't resolve property '"+ast.property()+"' for obj of type "+obj.getClass());
+        throw new EvalError("can't resolve property '"+ast.property()+"' for obj of type "+obj.getClass());
     }
     protected Object call( CallAST ast ){
         AST base = ast.base();

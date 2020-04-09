@@ -8,6 +8,7 @@ import xyz.cofe.text.tparse.Tokenizer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static xyz.cofe.text.tparse.Chars.*;
 
@@ -103,7 +104,19 @@ public class Lexer {
      */
     public static List<? extends CToken> tokens( String source ){
         if( source==null )throw new IllegalArgumentException( "source==null" );
-        return tokenizer(source).filter( t-> !(t instanceof WhiteSpaceTok) ).toList();
+
+        Tokenizer<CharPointer, ? extends CToken> tknz = tokenizer(source);
+        List<? extends CToken> toks = tknz.toList();
+
+        if( source.length()>0 ){
+            if( toks.isEmpty() )throw new ParseError("lexer return 0 tokens for non empty source");
+            CToken lastTok = toks.get(toks.size()-1);
+            if( lastTok.end().position() < source.length() ){
+                throw new ParseError("lexer not parse all source");
+            }
+        }
+
+        return toks.stream().filter( t-> !(t instanceof WhiteSpaceTok) ).collect(Collectors.toList());
     }
 
     /**
@@ -115,6 +128,18 @@ public class Lexer {
     public static List<? extends CToken> tokens( String source, int from ){
         if( source==null )throw new IllegalArgumentException( "source==null" );
         if( from<0 )throw new IllegalArgumentException( "from<0" );
-        return tokenizer(source,from).filter( t-> !(t instanceof WhiteSpaceTok) ).toList();
+
+        Tokenizer<CharPointer, ? extends CToken> tknz = tokenizer(source);
+        List<? extends CToken> toks = tknz.toList();
+        int parseSize = source.length() - from;
+        if( parseSize>0 ){
+            if( toks.isEmpty() )throw new ParseError("lexer return 0 tokens for non empty source");
+            CToken lastTok = toks.get(toks.size()-1);
+            if( lastTok.end().position() < source.length() ){
+                throw new ParseError("lexer not parse all source");
+            }
+        }
+
+        return toks.stream().filter( t-> !(t instanceof WhiteSpaceTok) ).collect(Collectors.toList());
     }
 }
