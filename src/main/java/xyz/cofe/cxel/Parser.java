@@ -165,12 +165,12 @@ public class Parser {
     /**
      * Скобочное выражение <br>
      * bracketExpression ::=
-     *   {@link Keyword#OpenBracket '('}
+     *   {@link Keyword#OpenParenthes '('}
      *   {@link #expression}
-     *   {@link Keyword#CloseBracket ')'}
+     *   {@link Keyword#CloseParenthes ')'}
      */
     public static final GR<TPointer, ? extends AST> bracketExpression
-        = Keyword.OpenBracket.parser().next( expression ).next( Keyword.CloseBracket.parser() )
+        = Keyword.OpenParenthes.parser().next( expression ).next( Keyword.CloseParenthes.parser() )
         .map( (l,e,r)->e );
 
     /**
@@ -233,12 +233,12 @@ public class Parser {
                         ptr = base.end();
                         continue;
                     }
-                } else if( Keyword.OpenBracket.match(t0) ){
+                } else if( Keyword.OpenParenthes.match(t0) ){
                     boolean succ = true;
                     List<AST> args = new ArrayList<>();
                     TPointer p = ptr.move(1);
                     while( true ){
-                        if( Keyword.CloseBracket.match(p.lookup(0)) ){
+                        if( Keyword.CloseParenthes.match(p.lookup(0)) ){
                             p = p.move(1);
                             succ = true;
                             break;
@@ -255,7 +255,7 @@ public class Parser {
                         if( Keyword.Comma.match(p.lookup(0)) ){
                             p = p.move(1);
                             continue;
-                        }else if( Keyword.CloseBracket.match(p.lookup(0))){
+                        }else if( Keyword.CloseParenthes.match(p.lookup(0))){
                             p = p.move(1);
                             succ = true;
                             break;
@@ -264,6 +264,14 @@ public class Parser {
                     if( succ ){
                         CallAST call = new CallAST(base.end(), p, base, args);
                         base = call;
+                        ptr = base.end();
+                        continue;
+                    }
+                } else if( Keyword.OpenBracket.match(t0) ){
+                    Optional<AST> idxOffAst = expression.apply(ptr.move(1));
+                    if( idxOffAst.isPresent() && Keyword.CloseBracket.match(idxOffAst.get().end().lookup(0)) ){
+                        IndexAST idxAst = new IndexAST(ptr,idxOffAst.get().end().move(1),base,idxOffAst.get());
+                        base = idxAst;
                         ptr = base.end();
                         continue;
                     }
