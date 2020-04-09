@@ -1,6 +1,10 @@
 package xyz.cofe.cxel.eval;
 
 import xyz.cofe.cxel.EvalError;
+import xyz.cofe.cxel.ast.BooleanAST;
+import xyz.cofe.cxel.ast.NullAST;
+import xyz.cofe.cxel.ast.NumberAST;
+import xyz.cofe.cxel.ast.StringAST;
 import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.fn.Tuple2;
 import xyz.cofe.iter.Eterable;
@@ -21,7 +25,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Контекст интерпретации
+ * Контекст интерпретации.
+ *
+ * <p>
+ *     Контекст содержит в себе:
+ *     <ul>
+ *         <li>Переменные - см {@link #read(String)}, {@link #bind(String, Object)}</li>
+ *         <li>Глобальные операторы -
+ *         Каждый оператор (+,-,*, и т.д.) является функцией от двух аргументов
+ *         <br>
+ *         см. {@link #bindStaticMethod(Method)}, {@link #bindStaticMethods(Class)}
+ *         </li>
+ *     </ul>
+ * </p>
  */
 public class EvalContext {
     //region create & conf
@@ -348,8 +364,8 @@ public class EvalContext {
 
     /**
      * Вызов метода
-     * @param inst экземпляр объекта
-     * @param method имя метода
+     * @param inst экземпляр объекта или null
+     * @param method имя метода или имя оператора
      * @param args аргументы
      * @return результат вызова
      */
@@ -572,5 +588,45 @@ public class EvalContext {
         bindStaticMethods(FloatOperators.class);
         bindStaticMethods(DoubleOperators.class);
         bindStaticMethods(UnaryOperations.class);
+    }
+
+    /**
+     * Интерпретация числа
+     * @param ast число (токен/лексема)
+     * @return число (значение)
+     */
+    public Object number( NumberAST ast ){
+        if( ast==null )throw new IllegalArgumentException( "ast==null" );
+        return ast.value();
+    }
+
+    /**
+     * Интерпретация булево
+     * @param ast булево (токен/лексема)
+     * @return булево (значение)
+     */
+    public Object bool( BooleanAST ast ){
+        if( ast==null )throw new IllegalArgumentException( "ast==null" );
+        return ast.value();
+    }
+
+    /**
+     * Интерпретация строки
+     * @param ast строка (токен/лексема)
+     * @return строка (значение)
+     */
+    public Object string( StringAST ast ){
+        if( ast==null )throw new IllegalArgumentException( "ast==null" );
+        return ast.value();
+    }
+
+    /**
+     * Интерпретация null литерала
+     * @param ast null литерал (токен/лексема)
+     * @return null (значение)
+     */
+    public Object nullLiteral( NullAST ast ){
+        if( ast==null )throw new IllegalArgumentException( "ast==null" );
+        return ast.value();
     }
 }

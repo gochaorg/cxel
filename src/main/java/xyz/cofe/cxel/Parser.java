@@ -162,17 +162,7 @@ public class Parser {
      */
     public static final ProxyGR<TPointer,AST> expression = new ProxyGR<>(dummy);
 
-    /**
-     * Скобочное выражение <br>
-     * bracketExpression ::=
-     *   {@link Keyword#OpenParenthes '('}
-     *   {@link #expression}
-     *   {@link Keyword#CloseParenthes ')'}
-     */
-    public static final GR<TPointer, ? extends AST> bracketExpression
-        = Keyword.OpenParenthes.parser().next( expression ).next( Keyword.CloseParenthes.parser() )
-        .map( (l,e,r)->e );
-
+    //region Унарные операции
     /**
      * Унарная операция <br>
      * unaryExression ::=
@@ -184,10 +174,24 @@ public class Parser {
     public static final GR<TPointer, ? extends AST> unaryExression
         = Keyword.parserOf( Keyword.Minus, Keyword.Not )
           .next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
+    //endregion
+
+    //region Атомарные значения
+    /**
+     * Скобочное выражение <br>
+     * bracketExpression ::=
+     *   {@link Keyword#OpenParenthes '('}
+     *   {@link #expression}
+     *   {@link Keyword#CloseParenthes ')'}
+     */
+    public static final GR<TPointer, ? extends AST> bracketExpression
+        = Keyword.OpenParenthes.parser().next( expression ).next( Keyword.CloseParenthes.parser() )
+              .map( (l,e,r)->e );
 
     /**
      * Указатель на переменную <br>
-     * varRef ::= {@link IdTok}
+     * varRef ::= {@link IdTok} <br>
+     * Входит в {@link #atomValue}
      */
     public static final GR<TPointer, ? extends AST> varRef
         = atomic(IdTok.class, VarRefAST::new);
@@ -195,11 +199,12 @@ public class Parser {
     /**
      * Атомарное значение <br>
      * atomValue ::=
-     *     {@link #bracketExpression}
-     *   | {@link #number}
-     *   | {@link #bool}
-     *   | {@link #nullConst}
-     *   | {@link #varRef}
+     *     {@link #bracketExpression} <br>
+     *   | {@link #number} <br>
+     *   | {@link #bool} <br>
+     *   | {@link #nullConst} <br>
+     *   | {@link StringTok} <br>
+     *   | {@link #varRef} <br>
      *   | {@link #unaryExression}
      */
     public static final GR<TPointer,? extends AST> atomValue
@@ -211,8 +216,41 @@ public class Parser {
               .another(varRef)
               .another(unaryExression)
               .map( t -> (AST)t );
+    //endregion
 
-    public static GR<TPointer, ? extends AST> postfix(GR<TPointer, ? extends AST> grBase){
+    //region Бинарные операторы, в порядке уменьшения приоритета
+    //region postfix
+    /**
+     * Раширение {@link #atomValue} до операций:
+     * <ul>
+     *  <li> доступа к полю объекта </li>
+     *  <li> вызов метода </li>
+     *  <li> доступ к элементу массива </li>
+     * </ul>
+     * postfix ::= {@link #atomValue} { <br>
+     * {@link Keyword#Dot '.'} {@link IdTok} <br>
+     *
+     * | {@link Keyword#OpenParenthes '('}
+     *   [
+     *       {@link #expression}
+     *       {
+     *         {@link Keyword#Comma ','}
+     *         {@link #expression}
+     *       }
+     *   ]
+     *   {@link Keyword#CloseParenthes ')'} <br>
+     *
+     * | {@link Keyword#OpenBracket '['}
+     *   {@link #expression}
+     *   {@link Keyword#CloseBracket ']'}
+     * <br>
+     *
+     * }
+     * @param grBase ссылка на {@link #atomValue}
+     * @return Расширение {@link #atomValue}
+     */
+    @SuppressWarnings({ "UnnecessaryLocalVariable", "UnnecessaryContinue" })
+    public static GR<TPointer, ? extends AST> postfix( GR<TPointer, ? extends AST> grBase){
         if( grBase==null )throw new IllegalArgumentException( "grBase==null" );
 
         GR<TPointer, ? extends AST> reslt = ptrStart -> {
@@ -284,14 +322,14 @@ public class Parser {
         };
         return reslt;
     }
+    //endregion
 
-    //region Бинарные операторы, в порядке уменьшения приоритета
     /**
      * Оператор умножения/деления <br>
      * multipleDevideOperator ::= {@link #atomValue}
      * {
      *   ( {@link Keyword#Multiple mul} | {@link Keyword#Divide div} )
-     *   {@link #atomValue}
+     *   {@link #postfix(GR) postfix}
      * }
      */
     public static final GR<TPointer, ? extends AST> mulDiv
