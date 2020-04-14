@@ -13,20 +13,20 @@ import java.util.stream.Collectors;
 /**
  * Вариант вызова метода
  */
-public class ReflectCall
+public class Call
     implements
         PreparedCall, ArgsCasing, InvariantArgs, PrimitiveCastArgs, CastLooseDataArgs,
         CovariantArgs, ImplicitArgs, ParameterCount
 {
-    public ReflectCall(){
+    public Call(){
     }
 
-    public ReflectCall( Object inst, Method meth ){
+    public Call(Object inst, TypedFn meth ){
         this.instance = inst;
         this.method = meth;
     }
 
-    public ReflectCall configure( Consumer<ReflectCall> conf ){
+    public Call configure(Consumer<Call> conf ){
         if( conf != null ) conf.accept(this);
         return this;
     }
@@ -44,13 +44,13 @@ public class ReflectCall
     //endregion
 
     //region method : Method
-    protected Method method;
+    protected TypedFn method;
 
-    public Method getMethod(){
+    public TypedFn getMethod(){
         return method;
     }
 
-    public void setMethod( Method method ){
+    public void setMethod( TypedFn method ){
         this.method = method;
     }
     //endregion
@@ -76,20 +76,20 @@ public class ReflectCall
         List<ArgPass> args = getArgs();
         if( args == null ) return false;
 
-        Method method = getMethod();
+        TypedFn method = getMethod();
         if( method == null ) return false;
 
-        Object inst = getInstance();
-        boolean methIsStatic = (method.getModifiers() & Modifier.STATIC) == Modifier.STATIC;
-        if( !methIsStatic && inst == null ){
-            return false;
-        }
+//        Object inst = getInstance();
+//        boolean methIsStatic = (method.getModifiers() & Modifier.STATIC) == Modifier.STATIC;
+//        if( !methIsStatic && inst == null ){
+//            return false;
+//        }
 
         List<ArgPass> nonNullArgs = args.stream().filter(Objects::nonNull).collect(Collectors.toList());
         if( nonNullArgs.stream().anyMatch(m -> !m.isPassable()) ) return false;
 
         Map<Integer, Boolean> argPassable = new LinkedHashMap<>();
-        for( int i = 0; i < method.getParameterCount(); i++ ) argPassable.put(i, false);
+        for( int i = 0; i < method.getParametersType().length; i++ ) argPassable.put(i, false);
         nonNullArgs.forEach(m -> {
             argPassable.put(m.getIndex(), m.isPassable());
         });
@@ -103,8 +103,8 @@ public class ReflectCall
     public Object call(){
         if( !callable() ) throw new EvalError("can't calling");
 
-        Method method = getMethod();
-        Object[] params = new Object[method.getParameterCount()];
+        TypedFn method = getMethod();
+        Object[] params = new Object[method.getParametersType().length];
 
         getArgs().stream().filter(Objects::nonNull).forEach(pa -> {
             if( pa.getIndex() >= 0 && pa.getIndex() < params.length )
@@ -113,19 +113,15 @@ public class ReflectCall
 
         Object inst = getInstance();
 
-        try{
-            return method.invoke(inst, params);
-        }catch( IllegalAccessException | InvocationTargetException e ){
-            throw new EvalError(e);
-        }
+        return method.call(inst, params);
     }
     //endregion
 
     @Override
     public int argsCasing(){
-        Method method = getMethod();
+        TypedFn method = getMethod();
         if( method!=null ){
-            return Math.abs(method.getParameterCount() - getArgs().size());
+            return Math.abs(method.getParametersType().length - getArgs().size());
         }else {
             return Integer.MAX_VALUE;
         }
@@ -158,9 +154,9 @@ public class ReflectCall
 
     @Override
     public int parameterCount(){
-        Method method = getMethod();
+        TypedFn method = getMethod();
         if( method!=null ){
-            return method.getParameterCount();
+            return method.getParametersType().length;
         }
         return 0;
     }

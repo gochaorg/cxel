@@ -7,6 +7,7 @@ import xyz.cofe.cxel.ast.NumberAST;
 import xyz.cofe.cxel.ast.StringAST;
 import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.cxel.eval.score.DefaultScrolling;
+import xyz.cofe.fn.Fn2;
 import xyz.cofe.fn.Tuple2;
 import xyz.cofe.iter.Eterable;
 
@@ -21,8 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -179,14 +182,10 @@ public class EvalContext {
     //endregion
 
     //region bind static methods
-    /**
-     * Добавление статичного метода как глобальную функцию
-     * @param name имя функции, может быть null, тогда будет использоваться имя метода
-     * @param method метод
-     */
-    public EvalContext bindStaticMethod( String name, Method method ){
-        if( method==null )throw new IllegalArgumentException( "method==null" );
-        if( name==null )name = method.getName();
+    private void bindStatic( String name, Consumer<StaticMethods> conf ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( conf==null )throw new IllegalArgumentException("conf==null");
+
         ReadWriteLock rwlock = rwlockOf(name);
         try {
             rwlock.writeLock().lock();
@@ -197,10 +196,21 @@ public class EvalContext {
             }
 
             StaticMethods stMeths = (StaticMethods)oStMeths;
-            stMeths.add(method);
+            conf.accept(stMeths);
         } finally{
             rwlock.writeLock().unlock();
         }
+    }
+
+    /**
+     * Добавление статичного метода как глобальную функцию
+     * @param name имя функции, может быть null, тогда будет использоваться имя метода
+     * @param method метод
+     */
+    public EvalContext bindStaticMethod( String name, Method method ){
+        if( method==null )throw new IllegalArgumentException( "method==null" );
+        if( name==null )name = method.getName();
+        bindStatic(name, st->st.add(method));
         return this;
     }
 
@@ -239,8 +249,70 @@ public class EvalContext {
         }
         return this;
     }
+
+    /**
+     * Добавление глобальной функции
+     * @param name имя функции
+     * @param resultType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    public <Z> EvalContext bindStaticMethod(String name, Class<Z> resultType, Supplier<Z> fn){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( resultType==null )throw new IllegalArgumentException("resultType==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->st.add(TypedFn.of(resultType,fn)));
+        return this;
+    }
+
+    /**
+     * Добавление глобальной функции c одним аргументом
+     * @param name имя функции
+     * @param resultType возвращаемый тип
+     * @param arg0 тип армента
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    public <A,Z> EvalContext bindStaticMethod(String name,
+                                              Class<A> arg0,
+                                              Class<Z> resultType,
+                                              Function<A,Z> fn){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( arg0==null )throw new IllegalArgumentException("arg0==null");
+        if( resultType==null )throw new IllegalArgumentException("resultType==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,resultType,(inst,a0)->fn.apply(a0))));
+        return this;
+    }
+
+    /**
+     * Добавление глобальной функции c двумя аргументами
+     * @param name имя функции
+     * @param resultType возвращаемый тип
+     * @param arg0 тип первого армента
+     * @param arg1 тип второгго армента
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    public <A,B,Z> EvalContext bindStaticMethod(String name,
+                                              Class<A> arg0,
+                                              Class<B> arg1,
+                                              Class<Z> resultType,
+                                              BiFunction<A,B,Z> fn){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( arg0==null )throw new IllegalArgumentException("arg0==null");
+        if( arg1==null )throw new IllegalArgumentException("arg1==null");
+        if( resultType==null )throw new IllegalArgumentException("resultType==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,arg1,resultType,(inst,a0,a1)->fn.apply(a0,a1))));
+        return this;
+    }
     //endregion
 
+    //region preparingCalls - вызов метода/функции
     private volatile PreparingCalls preparingCalls;
     private PreparingCalls preparingCalls(){
         if( preparingCalls!=null )return preparingCalls;
@@ -250,6 +322,7 @@ public class EvalContext {
             return preparingCalls;
         }
     }
+    //endregion
 
     //region Вызов метода
     /**
@@ -383,6 +456,14 @@ public class EvalContext {
         bindStaticMethods(FloatOperators.class);
         bindStaticMethods(DoubleOperators.class);
         bindStaticMethods(UnaryOperations.class);
+        bindStaticMethod("+",
+            CharSequence.class,CharSequence.class,
+            String.class,
+            (a,b)-> a==null && b==null ? "nullnull" :
+                    a!=null && b==null ? a+"null" :
+                    a==null && b!=null ? "null"+b :
+                    a.toString()+b.toString()
+        );
     }
     //endregion
 
