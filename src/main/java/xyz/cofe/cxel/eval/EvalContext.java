@@ -136,7 +136,7 @@ public class EvalContext {
      * @param name имя переменной
      * @return значение переменной если она определена
      */
-    protected Optional<Object> tryRead( String name ){
+    public Optional<Object> tryRead( String name ){
         if( name==null )throw new IllegalArgumentException( "name==null" );
 
         ReadWriteLock rwLock = rwlockOf(name);
@@ -241,128 +241,17 @@ public class EvalContext {
     }
     //endregion
 
+    private volatile PreparingCalls preparingCalls;
+    private PreparingCalls preparingCalls(){
+        if( preparingCalls!=null )return preparingCalls;
+        synchronized (this){
+            if( preparingCalls!=null )return preparingCalls;
+            preparingCalls = new ReflectPreparingCalls(this);
+            return preparingCalls;
+        }
+    }
+
     //region Вызов метода
-    private static boolean isPrimitiveNumber( Class<?> t ){
-        if( t==byte.class )return true;
-        if( t==short.class )return true;
-        if( t==int.class )return true;
-        if( t==long.class )return true;
-        if( t==float.class )return true;
-        return t == double.class;
-    }
-
-    private static class NumCast {
-        public Class<?> targetType;
-        public Object targetValue;
-        public Number sourceNumber;
-        public boolean looseData;
-        public boolean sameType = false;
-
-        public NumCast(Class<?> targetType, Object targetValue, Number sourceNumber, boolean looseData){
-            this.targetType = targetType;
-            this.targetValue = targetValue;
-            this.sourceNumber = sourceNumber;
-            this.looseData = looseData;
-        }
-    }
-
-    private static NumCast tryCast( Class<?> primitiveNumber, Number someNum ){
-        if( someNum==null )throw new IllegalArgumentException( "someNum==null" );
-        if( primitiveNumber==null )throw new IllegalArgumentException( "primitiveNumber==null" );
-        if( !primitiveNumber.isPrimitive() )throw new IllegalArgumentException( "!primitiveNumber.isPrimitive()" );
-        if( !isPrimitiveNumber(primitiveNumber) )throw new IllegalArgumentException( "!isPrimitiveNumber(primitiveNumber)" );
-
-        if( primitiveNumber==byte.class ){
-            if( someNum instanceof Byte ){
-                NumCast ncast =new NumCast(primitiveNumber, (byte)(Byte)someNum, someNum, false );
-                ncast.sameType = true;
-                return ncast;
-            }else if( someNum instanceof Integer ){
-                int v = (int)(Integer)someNum;
-                if( v>255 || v<Byte.MIN_VALUE ){
-                    return new NumCast(primitiveNumber, (byte)v, someNum, true);
-                }else{
-                    return new NumCast(primitiveNumber, (byte)v, someNum, false);
-                }
-            }else if( someNum instanceof Short ){
-                short v = (short)(Short)someNum;
-                if( v>255 || v<Byte.MIN_VALUE ){
-                    return new NumCast(primitiveNumber, (byte)v, someNum, true);
-                }else{
-                    return new NumCast(primitiveNumber, (byte)v, someNum, false);
-                }
-            }else if( someNum instanceof Long ){
-                long v = someNum.longValue();
-                if( v>255 || v<Byte.MIN_VALUE ){
-                    return new NumCast(primitiveNumber, (byte)v, someNum, true);
-                }else{
-                    return new NumCast(primitiveNumber, (byte)v, someNum, false);
-                }
-            }else{
-                return new NumCast(primitiveNumber, (byte)someNum.byteValue(), someNum, true);
-            }
-        }else if( primitiveNumber==int.class ){
-            if( someNum instanceof Byte || someNum instanceof Short || someNum instanceof Integer ){
-                NumCast ncast = new NumCast(primitiveNumber, someNum.intValue(), someNum, false);
-                ncast.sameType = someNum instanceof Integer;
-                return ncast;
-            }else{
-                if( someNum instanceof Long || someNum instanceof BigInteger ){
-                    long v = someNum.longValue();
-                    boolean loose = v > Integer.MAX_VALUE || v < Integer.MIN_VALUE;
-                    return new NumCast(primitiveNumber, someNum.intValue(), someNum, loose);
-                }else{
-                    return new NumCast(primitiveNumber, someNum.intValue(), someNum, true);
-                }
-            }
-        }else if( primitiveNumber==short.class ){
-            if( someNum instanceof Byte || someNum instanceof Short ){
-                NumCast ncast = new NumCast(primitiveNumber, someNum.shortValue(), someNum, false);
-                ncast.sameType = someNum instanceof Short;
-                return ncast;
-            }else{
-                if( someNum instanceof Integer || someNum instanceof Long || someNum instanceof BigInteger ){
-                    long v = someNum.longValue();
-                    boolean loose = v > Short.MAX_VALUE || v < Short.MIN_VALUE;
-                    return new NumCast(primitiveNumber, someNum.shortValue(), someNum, loose);
-                }else{
-                    return new NumCast(primitiveNumber, someNum.shortValue(), someNum, true);
-                }
-            }
-        }else if( primitiveNumber==long.class ){
-            if( someNum instanceof Long || someNum instanceof Integer || someNum instanceof Short || someNum instanceof Byte ){
-                NumCast ncast = new NumCast(primitiveNumber, someNum.longValue(), someNum, false);
-                ncast.sameType = someNum instanceof Long;
-                return ncast;
-            }else if( someNum instanceof BigInteger ){
-                BigInteger v = (BigInteger)someNum;
-                boolean loose = v.compareTo(BigInteger.valueOf(Long.MAX_VALUE))>0 ||
-                                v.compareTo(BigInteger.valueOf(Long.MIN_VALUE))<0;
-                return new NumCast(primitiveNumber, someNum.longValue(), someNum, loose);
-            }else{
-                return new NumCast(primitiveNumber, someNum.longValue(), someNum, true);
-            }
-        }else if( primitiveNumber==float.class ){
-            if( someNum instanceof Float || someNum instanceof Double ){
-                NumCast ncast = new NumCast(primitiveNumber, someNum.floatValue(), someNum, false);
-                ncast.sameType = someNum instanceof Float;
-                return ncast;
-            }else{
-                return new NumCast(primitiveNumber, someNum.floatValue(), someNum, true);
-            }
-        }else if( primitiveNumber==double.class ){
-            if( someNum instanceof Double ){
-                NumCast ncast = new NumCast(primitiveNumber, someNum.doubleValue(), someNum, false);
-                ncast.sameType = true;
-                return ncast;
-            }else{
-                return new NumCast(primitiveNumber, someNum.doubleValue(), someNum, true);
-            }
-        }
-
-        return null;
-    }
-
     /**
      * Вызов метода
      * @param inst экземпляр объекта или null
@@ -373,86 +262,7 @@ public class EvalContext {
     public Object call( Object inst, String method, List<Object> args ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
 
-        Eterable<Method> methods = null;
-
-        if( inst!=null ){
-            methods = Eterable.of(inst.getClass().getMethods()).filter( m->m.getName().equals(method) );
-            if( methods.count()<1 ){
-                throw new EvalError("method '"+method+"' not found in "+inst.getClass());
-            }
-        }else{
-            Optional<Object> m = tryRead(method);
-            if( !m.isPresent() || !(m.get() instanceof StaticMethods) ){
-                throw new EvalError("function '"+method+"' not found");
-            }
-            methods = Eterable.of((StaticMethods)m.get());
-        }
-
-        if( methods.count()<1 ){
-            throw new EvalError("method/function '"+method+"' not found");
-        }
-
-        List<? extends PreparedCall> rcalls = methods.map( m->{
-            ReflectCall rcall = null;
-            Parameter[] params = m.getParameters();
-            if( params.length==0 ){
-                rcall = new ReflectCall(inst,m);
-            }else{
-                rcall = new ReflectCall(inst,m);
-                for( int pi=0; pi<params.length; pi++ ){
-                    Parameter p = params[pi];
-                    if( pi>=args.size() ){
-                        // Значение параметра не определено
-                        rcall.getArgs().add( ArgPass.unpassable(pi, p.getType(), null));
-                    }else{
-                        Class<?> pt = p.getType();
-
-                        Object arg = args.get(pi);
-                        Class<?> at = arg!=null ? arg.getClass() : Object.class;
-                        if( arg==null && pt.isPrimitive() ){
-                            // Значение параметра не может быть null
-                            rcall.getArgs().add( ArgPass.unpassable(pi,pt,null) );
-                        }else {
-                            if( pt.equals(at) ){
-                                // Полное совпадение типа
-                                rcall.getArgs().add( ArgPass.invariant(pi,pt,arg) );
-                            }else if( pt.isAssignableFrom(at) ){
-                                // Коваринтное совпадение типов
-                                rcall.getArgs().add( ArgPass.covar(pi,pt,arg) );
-                            }else{
-                                if( isPrimitiveNumber(pt) && arg instanceof Number ){
-                                    // Парамтер представлен примитивным числом и передано число
-                                    NumCast ncast = tryCast(pt,(Number)arg);
-                                    if( ncast!=null ){
-                                        if( ncast.sameType ){
-                                            rcall.getArgs().add(
-                                                ArgPass.invariant(pi, pt, ncast.targetValue)
-                                                    .primitiveCast(true)
-                                                    .castLooseData(false)
-                                            );
-                                        }else {
-                                            rcall.getArgs().add(
-                                                ArgPass.covar(pi, pt, ncast.targetValue)
-                                                    .primitiveCast(true)
-                                                    .castLooseData(ncast.looseData)
-                                            );
-                                        }
-                                    }else {
-                                        Object v = pt.cast(arg);
-                                        rcall.getArgs().add(ArgPass.covar(pi, pt, v));
-                                    }
-                                }else{
-                                    // Нет совместимых вариантов
-                                    rcall.getArgs().add(ArgPass.unpassable(pi, pt, arg));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return rcall;
-        }).filter(ReflectCall::callable)
-        .toList();
+        List<? extends PreparedCall> rcalls = preparingCalls().prepare(inst,method,args);
 
         if( rcalls.isEmpty() ){
             throw new EvalError(
