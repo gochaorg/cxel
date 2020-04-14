@@ -6,6 +6,7 @@ import xyz.cofe.cxel.ast.NullAST;
 import xyz.cofe.cxel.ast.NumberAST;
 import xyz.cofe.cxel.ast.StringAST;
 import xyz.cofe.cxel.eval.op.*;
+import xyz.cofe.cxel.eval.score.DefaultScrolling;
 import xyz.cofe.fn.Tuple2;
 import xyz.cofe.iter.Eterable;
 
@@ -391,7 +392,7 @@ public class EvalContext {
             throw new EvalError("method/function '"+method+"' not found");
         }
 
-        List<ReflectCall> rcalls = methods.map( m->{
+        List<? extends PreparedCall> rcalls = methods.map( m->{
             ReflectCall rcall = null;
             Parameter[] params = m.getParameters();
             if( params.length==0 ){
@@ -463,27 +464,10 @@ public class EvalContext {
         if( rcalls.size()>1 ){
             // Есть несколько вариантов вызова
             // Ведем подсчет очков
-            List<Tuple2<ReflectCall,Integer>> scoredRCalls = rcalls.stream().map( c -> {
-                int pcount = c.getMethod().getParameterCount();
+            CallScoring<? super PreparedCall> scoring = new DefaultScrolling();
 
-                int argsCasing = Math.abs(c.getMethod().getParameterCount() - c.getArgs().size());
-
-                int invCalls = (int)c.getArgs().stream().filter(ArgPass::isInvarant).count();
-                int primCastCalls = (int)c.getArgs().stream().filter(ArgPass::isPrimitiveCast).count();
-                int loseDataCalls = (int)c.getArgs().stream().filter(ArgPass::isCastLooseData).count();
-                int coCalls = (int)c.getArgs().stream().filter(ArgPass::isCovariant).count();
-                int implCalls = (int)c.getArgs().stream().filter(ArgPass::isImplicit).count();
-
-                int score = (int)(
-                    invCalls*Math.pow(pcount,0) +
-                    primCastCalls*Math.pow(pcount,1) +
-                    coCalls*Math.pow(pcount,2) +
-                    implCalls*Math.pow(pcount,3) +
-                    loseDataCalls*Math.pow(pcount,4) +
-                    argsCasing*Math.pow(pcount,5)
-                );
-
-                return Tuple2.of(c,score);
+            List<Tuple2<? extends PreparedCall,Integer>> scoredRCalls = rcalls.stream().map( c -> {
+                return Tuple2.of(c,scoring.calculate(c));
             }).collect(Collectors.toList());
 
             // находим минимальное кол-во очков
@@ -491,7 +475,7 @@ public class EvalContext {
             int minScoreValue = scoredRCalls.stream().mapToInt(Tuple2::b).min().getAsInt();
 
             // берем случаи с минимальным кол-вом очков
-            List<Tuple2<ReflectCall,Integer>> minScore =
+            List<Tuple2<? extends PreparedCall,Integer>> minScore =
                 scoredRCalls.stream().filter( r->r.b()==minScoreValue ).collect(Collectors.toList());
 
             if( minScore.size()>1 ){
@@ -592,6 +576,7 @@ public class EvalContext {
     }
     //endregion
 
+    //region Интерпретация литералов
     /**
      * Интерпретация числа
      * @param ast число (токен/лексема)
@@ -631,4 +616,5 @@ public class EvalContext {
         if( ast==null )throw new IllegalArgumentException( "ast==null" );
         return ast.value();
     }
+    //endregion
 }

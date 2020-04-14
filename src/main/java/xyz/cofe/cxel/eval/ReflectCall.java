@@ -1,20 +1,23 @@
 package xyz.cofe.cxel.eval;
 
 import xyz.cofe.cxel.EvalError;
+import xyz.cofe.cxel.eval.score.*;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * Вариант вызова метода
  */
-public class ReflectCall {
+public class ReflectCall
+    implements
+        PreparedCall, ArgsCasing, InvariantArgs, PrimitiveCastArgs, CastLooseDataArgs,
+        CovariantArgs, ImplicitArgs, ParameterCount
+{
     public ReflectCall(){
     }
 
@@ -96,6 +99,7 @@ public class ReflectCall {
     //endregion
 
     //region call()
+    @Override
     public Object call(){
         if( !callable() ) throw new EvalError("can't calling");
 
@@ -116,4 +120,48 @@ public class ReflectCall {
         }
     }
     //endregion
+
+    @Override
+    public int argsCasing(){
+        Method method = getMethod();
+        if( method!=null ){
+            return Math.abs(method.getParameterCount() - getArgs().size());
+        }else {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    @Override
+    public int invariantArgs(){
+        return (int)getArgs().stream().filter(ArgPass::isInvarant).count();
+    }
+
+    @Override
+    public int primitiveCastArgs(){
+        return (int)getArgs().stream().filter(ArgPass::isPrimitiveCast).count();
+    }
+
+    @Override
+    public int castLooseDataArgs(){
+        return (int)getArgs().stream().filter(ArgPass::isCastLooseData).count();
+    }
+
+    @Override
+    public int covariantArgs(){
+        return (int)getArgs().stream().filter(ArgPass::isCovariant).count();
+    }
+
+    @Override
+    public int implicitArgs(){
+        return (int)getArgs().stream().filter(ArgPass::isImplicit).count();
+    }
+
+    @Override
+    public int parameterCount(){
+        Method method = getMethod();
+        if( method!=null ){
+            return method.getParameterCount();
+        }
+        return 0;
+    }
 }
