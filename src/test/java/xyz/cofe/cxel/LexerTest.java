@@ -1,6 +1,7 @@
 package xyz.cofe.cxel;
 
 import org.junit.jupiter.api.Test;
+import xyz.cofe.cxel.tok.IntegerNumberTok;
 import xyz.cofe.cxel.tok.StringTok;
 import xyz.cofe.text.tparse.CToken;
 import xyz.cofe.text.tparse.CharPointer;
@@ -33,5 +34,17 @@ public class LexerTest {
         assertTrue(tok.isPresent());
 
         System.out.println("tok val="+tok.get().value());
+    }
+
+    @Test
+    public void hexBinOctInt(){
+        Lexer.tokens("1 0x0A 0xbc 0b1010 377 0377 3777 03777").forEach( t -> {
+            if( t instanceof IntegerNumberTok ){
+                IntegerNumberTok n = ((IntegerNumberTok) t);
+                System.out.println(t+" radix="+n.radix()+" value="+n.value()+" bigint="+n.bigIntegerValue());
+            }else{
+                System.out.println(t);
+            }
+        });
     }
 }

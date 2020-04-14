@@ -1,5 +1,7 @@
 package xyz.cofe.cxel.tok;
 
+import xyz.cofe.text.tparse.CharPointer;
+
 import java.math.BigInteger;
 
 /**
@@ -16,6 +18,17 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
     }
 
     /**
+     * Конструктор
+     * @param begin начало
+     * @param end конец
+     * @param tok последовательность цифр
+     */
+    public IntegerNumberTok(CharPointer begin, CharPointer end,DigitsTok tok ){
+        super(begin, end);
+        this.digits = tok;
+    }
+
+    /**
      * Конструктор коптрования
      * @param sample образец для копирования
      */
@@ -23,6 +36,8 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         super(sample.begin(), sample.end());
         this.radix = sample.radix;
         this.digits = sample.digits;
+        this.longValue = sample.longValue;
+        this.bigInt = sample.bigInt;
     }
 
     @Override

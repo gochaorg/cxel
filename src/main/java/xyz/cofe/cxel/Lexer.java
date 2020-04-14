@@ -17,6 +17,48 @@ import static xyz.cofe.text.tparse.Chars.*;
  */
 public class Lexer {
     /**
+     * 16тиричные цифры
+     */
+    public static final GR<CharPointer,DigitsTok> hexDigits
+        = test( c->"0123456789abcdefABCDEF".contains(""+c)).repeat().map(DigitsTok::new);
+
+    /**
+     * Целое 16тиричное число
+     */
+    public static final GR<CharPointer, IntegerNumberTok> hexIntegerNumber
+        = test(c -> c == '0').next(test(c -> c == 'x')).next(
+        hexDigits
+    ).map((c0, c1, ntok) -> new IntegerNumberTok(c0.begin(), ntok.end(), ntok).radix(16));
+
+    /**
+     * 2чные цифры
+     */
+    public static final GR<CharPointer,DigitsTok> binDigits
+        = test( c->"01".contains(""+c)).repeat().map(DigitsTok::new);
+
+    /**
+     * Целое 16тиричное число
+     */
+    public static final GR<CharPointer, IntegerNumberTok> binIntegerNumber
+        = test(c -> c == '0').next(test(c -> c == 'b')).next(
+        binDigits
+    ).map((c0, c1, ntok) -> new IntegerNumberTok(c0.begin(), ntok.end(), ntok).radix(2));
+
+    /**
+     * 8чные цифры
+     */
+    public static final GR<CharPointer,DigitsTok> octDigits
+        = test( c->"01234567".contains(""+c)).repeat().map(DigitsTok::new);
+
+    /**
+     * Целое 16тиричное число
+     */
+    public static final GR<CharPointer, IntegerNumberTok> octIntegerNumber
+        = test(c -> c == '0').next(
+        octDigits
+    ).map((c0, dits) -> new IntegerNumberTok(c0.begin(), dits.end(), dits).radix(8));
+
+    /**
      * Целое число
      */
     public static final GR<CharPointer, IntegerNumberTok> integerNumber
@@ -65,6 +107,9 @@ public class Lexer {
     private static final List<GR<CharPointer, ? extends CToken>> tokenParsers =
         new ArrayList(){{
             add(floatNumber);
+            add(hexIntegerNumber);
+            add(binIntegerNumber);
+            add(octIntegerNumber);
             add(integerNumber);
             add(StringTok.javascript);
             add(keyword);

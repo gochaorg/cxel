@@ -26,6 +26,13 @@ public class StringTok extends CToken {
         this.value = value;
     }
 
+    public StringTok( StringTok sample ){
+        super(sample);
+        this.value = value();
+    }
+
+    public StringTok clone(){ return new StringTok(this); }
+
     //region value
     protected String value;
 

@@ -28,6 +28,16 @@ public class IdTok extends CToken {
     }
 
     /**
+     * Конструктор копирования
+     * @param sample образец
+     */
+    public IdTok( IdTok sample ){
+        super(sample);
+    }
+
+    public IdTok clone(){ return new IdTok(this); }
+
+    /**
      * Конструктор
      * @param tokens токены входящие в идентификатор
      */

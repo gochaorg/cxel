@@ -127,7 +127,7 @@ public class Parser {
     public static final GR<TPointer, AST> bool = ptr -> {
         Optional<CToken> tok = ptr.lookup(0);
         if( tok.isPresent() && tok.get() instanceof KeywordTok ){
-            Keyword k = ((KeywordTok)tok.get()).keyword;
+            Keyword k = ((KeywordTok)tok.get()).keyword();
             if( k!=null ){
                 if( k==Keyword.True || k==Keyword.False ){
                     return Optional.of( new BooleanAST(ptr, (KeywordTok)tok.get()) );
@@ -144,7 +144,7 @@ public class Parser {
     public static final GR<TPointer, AST> nullConst = ptr -> {
         Optional<CToken> tok = ptr.lookup(0);
         if( tok.isPresent() && tok.get() instanceof KeywordTok ){
-            Keyword k = ((KeywordTok)tok.get()).keyword;
+            Keyword k = ((KeywordTok)tok.get()).keyword();
             if( k!=null ){
                 if( k==Keyword.Null ){
                     return Optional.of( new NullAST(ptr, (KeywordTok)tok.get()) );

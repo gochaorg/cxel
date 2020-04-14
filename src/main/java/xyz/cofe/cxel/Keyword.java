@@ -137,7 +137,7 @@ public enum Keyword {
 
             CToken t = tok.get();
             if( t instanceof KeywordTok ){
-                if( ((KeywordTok) t).keyword.text.equals( this.text ) ){
+                if( ((KeywordTok) t).keyword().text.equals( this.text ) ){
                     return Optional.of( new KeywordAST(ptr, (KeywordTok)t) );
                 }
             }
@@ -175,7 +175,7 @@ public enum Keyword {
         if( !(cToken instanceof KeywordTok) )return false;
 
         KeywordTok kwt = (KeywordTok)cToken;
-        return this.equals(kwt.keyword);
+        return this.equals(kwt.keyword());
     }
 
     /**
@@ -189,6 +189,6 @@ public enum Keyword {
         if( !(cToken.get() instanceof KeywordTok) )return false;
 
         KeywordTok kwt = (KeywordTok)cToken.get();
-        return this.equals(kwt.keyword);
+        return this.equals(kwt.keyword());
     }
 }

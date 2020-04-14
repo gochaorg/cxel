@@ -67,12 +67,12 @@ public class BooleanAST extends ASTBase<BooleanAST> {
      */
     public Boolean value(){
         KeywordTok tok = keywordTok;
-        if( tok!=null && tok.keyword!=null ){
-            switch( tok.keyword ){
+        if( tok!=null && tok.keyword()!=null ){
+            switch( tok.keyword() ){
                 case True: return true;
                 case False: return false;
                 default:
-                    throw new EvalError("can't eval token "+tok.keyword+" as boolean");
+                    throw new EvalError("can't eval token "+tok.keyword()+" as boolean");
             }
         }
         throw new EvalError("can't eval token");

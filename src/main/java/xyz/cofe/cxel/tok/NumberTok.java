@@ -48,4 +48,15 @@ public abstract class NumberTok<SELF extends NumberTok<SELF>> extends CToken {
      * @return число
      */
     public abstract Number value();
+
+    /**
+     * Клонирование с указанием другого расположения лексемы
+     * @param begin начало лексемы
+     * @param end конец лексемы
+     * @return клон-лексема
+     */
+    public SELF location(CharPointer begin,CharPointer end){
+        SELF cloned = (SELF) super.location(begin,end);
+        return cloned;
+    }
 }

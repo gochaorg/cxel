@@ -37,7 +37,7 @@ public abstract class OpAST<SELF extends OpAST<SELF>> extends ASTBase<SELF> {
     public Keyword opKeyword(){
         KeywordAST kw = operator;
         KeywordTok tok = kw!=null ? kw.getKeywordTok() : null;
-        return tok!=null ? tok.keyword : null;
+        return tok!=null ? tok.keyword() : null;
     }
 
     /**

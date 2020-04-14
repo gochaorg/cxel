@@ -17,5 +17,22 @@ public class KeywordTok extends CToken {
     /**
      * Ключевое слово
      */
-    public final Keyword keyword;
+    private Keyword keyword;
+
+    /**
+     * Возвращает ключевое слово
+     * @return ключевое слово
+     */
+    public Keyword keyword(){ return keyword; }
+
+    /**
+     * Конструктор копирования
+     * @param sample образец
+     */
+    public KeywordTok( KeywordTok sample ){
+        super(sample);
+        this.keyword = sample.keyword;
+    }
+
+    public KeywordTok clone(){ return new KeywordTok(this); }
 }

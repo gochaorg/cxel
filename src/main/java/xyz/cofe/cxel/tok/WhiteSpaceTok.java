@@ -9,4 +9,10 @@ import java.util.List;
  */
 public class WhiteSpaceTok extends CToken {
     public WhiteSpaceTok( List<CToken> tokens ) { super(tokens); }
+
+    public WhiteSpaceTok( WhiteSpaceTok sample ){
+        super(sample);
+    }
+
+    public WhiteSpaceTok clone(){ return new WhiteSpaceTok(this); }
 }

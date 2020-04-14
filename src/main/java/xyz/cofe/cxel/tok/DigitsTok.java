@@ -16,6 +16,14 @@ public class DigitsTok extends CToken {
     public DigitsTok( CharPointer begin, CharPointer end ){ super(begin, end); }
     public DigitsTok( CToken begin, CToken end ){ super(begin, end); }
     public DigitsTok( List<CToken> tokens ){ super(tokens); }
+    public DigitsTok( CToken sample ){
+        super(sample);
+    }
+
+    @Override
+    public DigitsTok clone() {
+        return new DigitsTok(this);
+    }
 
     private static final String digits = "0123456789abcdefghijklmnopqrstuvwxyz";
     private static final char[] charsOfDigits = digits.toCharArray();
