@@ -28,6 +28,7 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         this.digits = tok;
     }
 
+    //region clone()
     /**
      * Конструктор коптрования
      * @param sample образец для копирования
@@ -38,13 +39,15 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         this.digits = sample.digits;
         this.longValue = sample.longValue;
         this.bigInt = sample.bigInt;
+        this.precision = sample.precision;
     }
 
     @Override
     public IntegerNumberTok clone(){
         return new IntegerNumberTok(this);
     }
-
+    //endregion
+    //region digits - последовательность цифр
     protected DigitsTok digits;
 
     /**
@@ -55,6 +58,21 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         return digits;
     }
 
+    /**
+     * Указывает на лексему последовательности цифр
+     * @param dgts последовательность цифр
+     * @return Клон с новой последовательностью цифр
+     */
+    public IntegerNumberTok digits( DigitsTok dgts ){
+        if( dgts==null )throw new IllegalArgumentException("dgts==null");
+        return cloneAndConf( c->{
+            c.digits = dgts;
+            c.longValue = null;
+            c.bigInt = null;
+        });
+    }
+    //endregion
+    //region radix - система счиссления
     /**
      * Возвращает систему счисления
      */
@@ -76,8 +94,17 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         if( newRadix>DigitsTok.maxRadix() )throw new IllegalArgumentException( "newRadix>DigitsTok.maxRadix()" );
         return cloneAndConf( c -> c.radix = newRadix );
     }
+    //endregion
+    //region long значение
+    /**
+     * long значение
+     */
+    protected Long longValue;
 
-    private Long longValue;
+    /**
+     * Возвращает long значение соответствующее лексеме
+     * @return long значение
+     */
     public long longValue(){
         if( longValue!=null )return longValue;
         long r = 0;
@@ -94,8 +121,17 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         longValue = r;
         return longValue;
     }
-
+    //endregion
+    //region bigIntegerValue значение
+    /**
+     * Big Integer значение
+     */
     protected BigInteger bigInt;
+
+    /**
+     * Возвращает Big Integer значение
+     * @return значение соовет токену
+     */
     public BigInteger bigIntegerValue(){
         if( bigInt!=null )return bigInt;
         BigInteger r = BigInteger.ZERO;
@@ -112,9 +148,42 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         bigInt = r;
         return bigInt;
     }
+    //endregion
 
+    /**
+     * Указывает точность чисел
+     */
+    protected IntegerPrecision precision = IntegerPrecision.LONG;
+
+    /**
+     * Возвращает точность чисел
+     * @return точность чисел
+     */
+    public IntegerPrecision precision(){ return precision; }
+
+    /**
+     * Указывает точность чисел
+     * @param precision точность чисел
+     * @return клон
+     */
+    public IntegerNumberTok precision( IntegerPrecision precision ){
+        if( precision==null )throw new IllegalArgumentException("precision==null");
+        return cloneAndConf( c->{
+            c.precision = precision;
+        });
+    }
+
+    @SuppressWarnings("DuplicateBranchesInSwitch")
     @Override
     public Number value(){
-        return longValue();
+        switch (precision) {
+            case BYTE: return ((Long)longValue()).byteValue();
+            case SHORT: return ((Long)longValue()).shortValue();
+            case INTEGER: return ((Long)longValue()).intValue();
+            case LONG: return longValue();
+            case BIGINT: return bigIntegerValue();
+            default:
+                return longValue();
+        }
     }
 }

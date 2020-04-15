@@ -35,15 +35,22 @@ public enum Keyword {
     /** Закрытая фигурная скобка */ CloseBrace("}"),
 
     /** Равенство */ Equals("=="),
+    /** Равенство */ StrongEquals("==="),
     /** Не равенство */ NotEquals("!="),
+    /** Не равенство */ StrongNotEquals("!=="),
     /** Меньше */ Less("<"),
     /** Больше */ More(">"),
     /** Меньше или равно */ LessOrEquals("<="),
     /** Больше или равно */ MoreOrEquals(">="),
 
-    /** Или */ Or("|"),
+    /** Битовое и */ BitAnd("&"),
+    /** Битовое или */ BitOr("|"),
+
+    /** Тильда */ Tilde("~"),
+
+    /** Или */ Or("||"),
     /** Не */ Not("!"),
-    /** И */ And("&"),
+    /** И */ And("&&"),
 
     /** И */ Comma(","),
 
@@ -73,6 +80,7 @@ public enum Keyword {
         this.text = text;
     }
 
+    //region lex(), lexer(), parser(), parsreOf() - различные грамматические парсеры
     private static Keyword[] ordDescByLen;
 
     /**
@@ -86,7 +94,6 @@ public enum Keyword {
         ordDescByLen = kws;
         return ordDescByLen;
     }
-
     public GR<CharPointer, KeywordTok> lex(){
         return ptr -> {
             for( int i=0; i<text.length(); i++ ){
@@ -164,7 +171,8 @@ public enum Keyword {
             return Optional.empty();
         };
     }
-
+    //endregion
+    //region match() - Проверка на совпадение
     /**
      * Проверка - совпадает текущее ключевое слово с указанным токеном/лексеммой
      * @param cToken лексема
@@ -191,4 +199,5 @@ public enum Keyword {
         KeywordTok kwt = (KeywordTok)cToken.get();
         return this.equals(kwt.keyword());
     }
+    //endregion
 }

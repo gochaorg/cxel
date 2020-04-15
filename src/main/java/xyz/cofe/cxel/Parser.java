@@ -172,7 +172,7 @@ public class Parser {
      * {@link #expression}
      */
     public static final GR<TPointer, ? extends AST> unaryExression
-        = Keyword.parserOf( Keyword.Minus, Keyword.Not )
+        = Keyword.parserOf( Keyword.Minus, Keyword.Not, Keyword.Tilde )
           .next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
     //endregion
 
@@ -377,7 +377,10 @@ public class Parser {
             Keyword.More,
             Keyword.MoreOrEquals,
             Keyword.Equals,
-            Keyword.NotEquals ),
+            Keyword.NotEquals,
+            Keyword.StrongEquals,
+            Keyword.StrongNotEquals
+        ),
         plusMinus
     );
 

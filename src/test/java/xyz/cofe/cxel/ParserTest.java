@@ -167,7 +167,7 @@ public class ParserTest {
         AtomicInteger sampleNum = new AtomicInteger(0);
         Eterable.of(
             Pair.of("true",true),
-            Pair.of("true & false",false),
+            Pair.of("true && false",false),
             Pair.of("!true",false),
             Pair.of("!(true)",false),
             Pair.of("null == null",true),
@@ -180,7 +180,7 @@ public class ParserTest {
             Pair.of("1 > 2",false),
             Pair.of("10 > 2",true),
             Pair.of("1.1 + 2.3 > 2",true),
-            Pair.of("true | false",true)
+            Pair.of("true || false",true)
         ).forEach( sample -> {
             if( sampleNum.incrementAndGet()>1 ){
                 System.out.println("..................................");
