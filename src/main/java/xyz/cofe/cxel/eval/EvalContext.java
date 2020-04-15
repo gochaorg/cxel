@@ -7,8 +7,7 @@ import xyz.cofe.cxel.ast.NumberAST;
 import xyz.cofe.cxel.ast.StringAST;
 import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.cxel.eval.score.DefaultScrolling;
-import xyz.cofe.fn.Fn2;
-import xyz.cofe.fn.Tuple2;
+import xyz.cofe.fn.*;
 import xyz.cofe.iter.Eterable;
 
 import java.beans.BeanInfo;
@@ -297,17 +296,191 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,Z> EvalContext bindStaticMethod(String name,
-                                              Class<A> arg0,
-                                              Class<B> arg1,
-                                              Class<Z> resultType,
-                                              BiFunction<A,B,Z> fn){
+                                                Class<A> arg0,
+                                                Class<B> arg1,
+                                                Class<Z> resultType,
+                                                BiFunction<A,B,Z> fn){
         if( name==null )throw new IllegalArgumentException("name==null");
         if( arg0==null )throw new IllegalArgumentException("arg0==null");
         if( arg1==null )throw new IllegalArgumentException("arg1==null");
         if( resultType==null )throw new IllegalArgumentException("resultType==null");
         if( fn==null )throw new IllegalArgumentException("fn==null");
         bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,arg1,resultType,(inst,a0,a1)->fn.apply(a0,a1))));
+        return this;
+    }
+
+    public EvalContext bindFn( String name, TypedFn typedFn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( typedFn==null )throw new IllegalArgumentException("typedFn==null");
+        bindStatic(name, st->{
+            st.add(typedFn);
+        });
+        return this;
+    }
+
+    public <Z> EvalContext bindFn( String name, Class<Z> retType, Supplier<Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.of(retType,fn));
+        });
+        return this;
+    }
+
+    public <A,Z> EvalContext bindFn( String name, Class<A> arg0, Class<Z> retType, Function<A,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(Object.class, arg0, retType, (inst,a0)->fn.apply(a0) ));
+        });
+        return this;
+    }
+
+    public <A,B,Z> EvalContext bindFn( String name, Class<A> arg0, Class<B> arg1, Class<Z> retType, BiFunction<A,B,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1,
+                retType,
+                (inst,a0,a1)->fn.apply(a0,a1) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2,
+                                         Class<Z> retType,
+                                         Fn3<A,B,C,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2,
+                retType,
+                (inst,a0,a1,a2)->fn.apply(a0,a1,a2) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3,
+                                         Class<Z> retType,
+                                         Fn4<A,B,C,D,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3,
+                retType,
+                (inst,a0,a1,a2,a3)->fn.apply(a0,a1,a2,a3) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,E,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+                                         Class<Z> retType,
+                                         Fn5<A,B,C,D,E,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3, arg4,
+                retType,
+                (inst,a0,a1,a2,a3,a4)->fn.apply(a0,a1,a2,a3,a4) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,E,F,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+                                         Class<F> arg5,
+                                         Class<Z> retType,
+                                         Fn6<A,B,C,D,E,F,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3, arg4, arg5,
+                retType,
+                (inst,a0,a1,a2,a3,a4,a5)->fn.apply(a0,a1,a2,a3,a4,a5) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,E,F,G,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+                                         Class<F> arg5, Class<G> arg6,
+                                         Class<Z> retType,
+                                         Fn7<A,B,C,D,E,F,G,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3, arg4, arg5, arg6,
+                retType,
+                (inst,a0,a1,a2,a3,a4,a5,a6)->fn.apply(a0,a1,a2,a3,a4,a5,a6) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,E,F,G,H,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+                                         Class<F> arg5, Class<G> arg6, Class<H> arg7,
+                                         Class<Z> retType,
+                                         Fn8<A,B,C,D,E,F,G,H,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7,
+                retType,
+                (inst,a0,a1,a2,a3,a4,a5,a6,a7)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,E,F,G,H,I,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+                                         Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8,
+                                         Class<Z> retType,
+                                         Fn9<A,B,C,D,E,F,G,H,I,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,
+                retType,
+                (inst,a0,a1,a2,a3,a4,a5,a6,a7,a8)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7,a8) ));
+        });
+        return this;
+    }
+
+    public <A,B,C,D,E,F,G,H,I,J,Z> EvalContext bindFn( String name,
+                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+                                         Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8, Class<J> arg9,
+                                         Class<Z> retType,
+                                         Fn10<A,B,C,D,E,F,G,H,I,J,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->{
+            st.add(TypedFn.method(
+                Object.class,
+                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9,
+                retType,
+                (inst,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9) ));
+        });
         return this;
     }
     //endregion
@@ -340,7 +513,10 @@ public class EvalContext {
         if( rcalls.isEmpty() ){
             throw new EvalError(
                 "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
-                " callable method not found"
+                " callable method not found"+
+                    ( args!=null && !args.isEmpty() ? ", for args[ "+(
+                        args.stream().map( a-> (a==null ? "null" : a+" : "+a.getClass() )
+                    ).reduce("", (a,b)->a.length()>0 ? a+", "+b : b) )+" ]" : "")
             );
         }
 
@@ -363,6 +539,41 @@ public class EvalContext {
 
             if( minScore.size()>1 ){
                 // найдены два или более равнозначных варианта
+                StringBuilder sb = new StringBuilder();
+                for( int pi=0; pi<minScore.size(); pi++ ){
+                    sb.append(pi+": ");
+                    sb.append("weight=").append(minScore.get(pi).b());
+                    sb.append(" prepared call: ");
+
+                    PreparedCall pcall = minScore.get(pi).a();
+                    if( pcall instanceof Call ){
+                        Call cl = (Call)pcall;
+                        sb.append("method=").append(cl.getMethod());
+                        sb.append("args("+cl.getArgs().size()+"):\n");
+                        for( int ai=0;ai<cl.getArgs().size();ai++ ){
+                            sb.append("arg[").append("]:");
+                            ArgPass apss = cl.getArgs().get(ai);
+                            sb.append(" idx=").append(apss.getIndex());
+                            sb.append(" inputType=").append(apss.getInputType());
+                            sb.append(" passable=").append(apss.isPassable());
+                            sb.append(" invariant=").append(apss.isInvarant());
+                            sb.append(" covariant=").append(apss.isCovariant());
+                            sb.append(" implicit=").append(apss.isImplicit());
+                            sb.append(" primtvcst=").append(apss.isPrimitiveCast());
+                            sb.append(" cstloose=").append(apss.isCastLooseData());
+                            if( apss.getArg()!=null ){
+                                sb.append(" argType=").append(apss.getArg().getClass());
+                                sb.append(" argValue=").append(apss.getArg());
+                            }else{
+                                sb.append(" argValue=").append("null");
+                            }
+                        }
+                    }else{
+                        sb.append(pcall);
+                    }
+
+                    sb.append("\n"+"................................."+"\n");
+                }
                 throw new EvalError(
                     "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
                         " ambiguous methods calls found"
@@ -371,7 +582,10 @@ public class EvalContext {
                 // нету ни одного подходящего варианта
                 throw new EvalError(
                     "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
-                        " callable method not found"
+                        " callable method not found"+
+                        ( args!=null && !args.isEmpty() ? ", for args[ "+(
+                            args.stream().map( a-> (a==null ? "null" : a+" : "+a.getClass() )
+                            ).reduce("", (a,b)->a.length()>0 ? a+", "+b : b) )+" ]" : "")
                 );
             }
 

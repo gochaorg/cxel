@@ -90,8 +90,8 @@ public class Eval {
             return this;
         }
 
-        public AST parse(){
-            TPointer ptr = Parser.source(source,from);
+        public AST parse(TPointer ptr){
+            if( ptr==null )throw new IllegalArgumentException("ptr==null");
 
             Optional<AST> astRoot = Parser.expression.apply( ptr );
             if( astRoot==null || !astRoot.isPresent() ){
@@ -101,12 +101,43 @@ public class Eval {
             return astRoot.get();
         }
 
-        protected Eval createEval(){
+        public AST parse(){
+            TPointer ptr = Parser.source(source,from);
+            return parse(ptr);
+        }
+
+        public AST parse(String source,int from){
+            if( source==null )throw new IllegalArgumentException("source==null");
+            if( from<0 )throw new IllegalArgumentException("from<0");
+            TPointer ptr = Parser.source(source,from);
+            return parse(ptr);
+        }
+
+        public AST parse(String source){
+            if( source==null )throw new IllegalArgumentException("source==null");
+            TPointer ptr = Parser.source(source,0);
+            return parse(ptr);
+        }
+
+        public Eval createEval(){
             return new Eval(initialContext);
         };
 
+        public EvalContext context(){
+            Eval eval = createEval();
+            if( contextConfigure!=null ){
+                contextConfigure.accept(eval.context());
+            }
+            return eval.context();
+        }
+
         public Object eval(){
             AST astRoot = parse();
+            return eval(astRoot);
+        }
+
+        public Object eval(AST astRoot){
+            if( astRoot==null )throw new IllegalArgumentException("astRoot==null");
 
             Eval eval = createEval();
             if( contextConfigure!=null ){
@@ -114,6 +145,17 @@ public class Eval {
             }
 
             return eval.eval(astRoot);
+        }
+
+        public Object eval(String source,int from){
+            if( source==null )throw new IllegalArgumentException("source==null");
+            if( from<0 )throw new IllegalArgumentException("from<0");
+            return eval(parse(source, from));
+        }
+
+        public Object eval(String source){
+            if( source==null )throw new IllegalArgumentException("source==null");
+            return eval(parse(source, 0));
         }
     }
 
