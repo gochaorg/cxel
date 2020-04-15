@@ -244,7 +244,7 @@ public class FloatNumberTok extends NumberTok<FloatNumberTok> {
     /**
      * Указывает точность чисел
      */
-    protected FloatPrecision precision;
+    protected FloatPrecision precision = FloatPrecision.DOUBLE;
 
     /**
      * Возвращает точность чисел

@@ -8,6 +8,7 @@ import xyz.cofe.text.tparse.Tokenizer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static xyz.cofe.text.tparse.Chars.*;
@@ -64,6 +65,54 @@ public class Lexer {
     public static final GR<CharPointer, IntegerNumberTok> integerNumber
         = digit.repeat().map( digits -> new IntegerNumberTok( new DigitsTok(digits) ) );
 
+    public static GR<CharPointer, IntegerNumberTok> integerPrecisionSuffix(
+        GR<CharPointer, IntegerNumberTok> intParseRule
+    ){
+        if( intParseRule==null )throw new IllegalArgumentException("intParseRule==null");
+        return ptr -> {
+            Optional<IntegerNumberTok> tNum = intParseRule.apply(ptr);
+            if( tNum==null || !tNum.isPresent() )return Optional.empty();
+
+            Optional<Character> suff = tNum.get().end().lookup(0);
+            if( suff!=null && suff.isPresent() ){
+                switch (suff.get()){
+                    case 'l': case 'L': {
+                        IntegerNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(IntegerPrecision.LONG).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                    case 'i': case 'I': {
+                        IntegerNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(IntegerPrecision.INTEGER).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                    case 's': case 'S': {
+                        IntegerNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(IntegerPrecision.SHORT).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                    case 'b': case 'B': {
+                        IntegerNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(IntegerPrecision.BYTE).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                    case 'n': case 'N': case 'w': case 'W': {
+                        IntegerNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(IntegerPrecision.BIGINT).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                }
+            }
+
+            return tNum;
+        };
+    }
+
     /**
      * Последовательность цифр
      */
@@ -76,6 +125,66 @@ public class Lexer {
     public static final GR<CharPointer, FloatNumberTok> floatNumber
         = digits.next(Keyword.Dot.lex()).next(digits)
               .map( (intPart,dot,floatPart)->new FloatNumberTok(intPart.begin(), floatPart.end(), intPart, floatPart) );
+
+    /**
+     * Дробное число предворенное точкой
+     */
+    public static final GR<CharPointer, FloatNumberTok> dotPrefFloatNumber
+        = Keyword.Dot.lex().next(digits).map( (dot,dgts)->{ return new FloatNumberTok(dot.begin(), dgts.end(), null, dgts);} );
+
+    /**
+     * Дробное число с точкой в конце
+     */
+    public static final GR<CharPointer, FloatNumberTok> dotSuffFloatNumber
+        = digits.next(Keyword.Dot.lex()).map( (dgts,dot)->{ return new FloatNumberTok(dgts.begin(), dot.end(), dgts, null);} );
+
+    public static GR<CharPointer, FloatNumberTok> floatPrecisionSuffix(
+        GR<CharPointer, FloatNumberTok> floatParseRule
+    ){
+        if( floatParseRule==null )throw new IllegalArgumentException("floatParseRule==null");
+        return ptr -> {
+            Optional<FloatNumberTok> tNum = floatParseRule.apply(ptr);
+            if( tNum==null || !tNum.isPresent() )return Optional.empty();
+
+            Optional<Character> suff = tNum.get().end().lookup(0);
+            if( suff!=null && suff.isPresent() ){
+                switch (suff.get()){
+                    case 'f': case 'F': {
+                        FloatNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(FloatPrecision.FLOAT).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                    case 'd': case 'D': {
+                        FloatNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(FloatPrecision.DOUBLE).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                    case 'n': case 'N': case 'w': case 'W': {
+                        FloatNumberTok ntok = tNum.get();
+                        ntok = ntok.precision(FloatPrecision.BIGDECIMAL).location(ntok.begin(),ntok.end().move(1));
+                        tNum = Optional.of(ntok);
+                    }
+                    break;
+                }
+            }
+
+            return tNum;
+        };
+    }
+
+    public static final GR<CharPointer, FloatNumberTok> intAsDouble
+        = digits.next(test(c->c=='d' || c=='D' ))
+        .map( (dgts,sf)->new FloatNumberTok(dgts.begin(), sf.end(), dgts, null).precision(FloatPrecision.DOUBLE) );
+
+    public static final GR<CharPointer, FloatNumberTok> intAsFloat
+        = digits.next(test(c->c=='f' || c=='F' ))
+        .map( (dgts,sf)->new FloatNumberTok(dgts.begin(), sf.end(), dgts, null).precision(FloatPrecision.FLOAT) );
+
+    public static final GR<CharPointer, FloatNumberTok> intAsBigDecimal
+        = digits.next(test(c->c=='w' || c=='W')).next(test( c->c=='d' || c=='D' || c=='f' || c=='F' ))
+        .map( (dgts,sf1,sf2)->new FloatNumberTok(dgts.begin(), sf2.end(), dgts, null).precision(FloatPrecision.BIGDECIMAL) );
 
     /**
      * пробельные символы
@@ -106,11 +215,16 @@ public class Lexer {
      */
     private static final List<GR<CharPointer, ? extends CToken>> tokenParsers =
         new ArrayList(){{
-            add(floatNumber);
-            add(hexIntegerNumber);
-            add(binIntegerNumber);
-            add(octIntegerNumber);
-            add(integerNumber);
+            add(floatPrecisionSuffix(floatNumber));
+            add(floatPrecisionSuffix(dotSuffFloatNumber));
+            add(floatPrecisionSuffix(dotPrefFloatNumber));
+            add(integerPrecisionSuffix(hexIntegerNumber));
+            add(integerPrecisionSuffix(binIntegerNumber));
+            add(integerPrecisionSuffix(octIntegerNumber));
+            add(intAsDouble);
+            add(intAsFloat);
+            add(intAsBigDecimal);
+            add(integerPrecisionSuffix(integerNumber));
             add(StringTok.javascript);
             add(keyword);
             add(id);

@@ -153,7 +153,7 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
     /**
      * Указывает точность чисел
      */
-    protected IntegerPrecision precision = IntegerPrecision.LONG;
+    protected IntegerPrecision precision = IntegerPrecision.INTEGER;
 
     /**
      * Возвращает точность чисел
