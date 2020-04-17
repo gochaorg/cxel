@@ -49,7 +49,7 @@ public class StaticMethods implements Eterable<TypedFn> {
      */
     private static String keyOf( TypedFn method ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
-        Type[] params = method.getParametersType();
+        Type[] params = method.getParameterTypes();
         StringBuilder sb = new StringBuilder();
         for( Type p : params ){
             if( sb.length()>0 )sb.append(",");
@@ -76,7 +76,7 @@ public class StaticMethods implements Eterable<TypedFn> {
     public StaticMethods sameArgs( Method method ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
         return new StaticMethods(filter( m ->{
-            Type[] mParams = m.getParametersType();
+            Type[] mParams = m.getParameterTypes();
             Type[] sParams = method.getParameterTypes();
             if( mParams.length != sParams.length )return false;
             for( int i=0; i<mParams.length; i++ ){
@@ -96,14 +96,32 @@ public class StaticMethods implements Eterable<TypedFn> {
     public StaticMethods sameArgs( Type ... paramTypes ){
         if( paramTypes==null )throw new IllegalArgumentException( "paramTypes==null" );
         return new StaticMethods(filter( m ->{
-            Type[] mParams = m.getParametersType();
-            Type[] sParams = paramTypes;
-            if( mParams.length != sParams.length )return false;
-            for( int i=0; i<mParams.length; i++ ){
-                Type mt = mParams[i];
-                Type st = mParams[i];
-                if( !mt.equals(st) )return false;
+            Type[] existsParams = m.getParameterTypes();
+            if( existsParams.length != paramTypes.length )return false;
+            for( int i=0; i<existsParams.length; i++ ){
+                Type hasType = existsParams[i];
+                Type expectedType = paramTypes[i];
+                if( !hasType.equals(expectedType) )return false;
             }
+            return true;
+        }));
+    }
+
+    public StaticMethods sameRetAndArgs( Type returnType, Type ... paramTypes ){
+        if( returnType==null )throw new IllegalArgumentException("returnType==null");
+        if( paramTypes==null )throw new IllegalArgumentException("paramTypes==null");
+        return new StaticMethods(filter( m ->{
+            Type[] existsParams = m.getParameterTypes();
+            if( existsParams.length != paramTypes.length )return false;
+            for( int i=0; i<existsParams.length; i++ ){
+                Type hasType = existsParams[i];
+                Type expectedType = paramTypes[i];
+                if( !hasType.equals(expectedType) )return false;
+            }
+
+            Type hasRetType = m.getReturnType();
+            if( !hasRetType.equals(returnType) )return false;
+
             return true;
         }));
     }
@@ -176,7 +194,6 @@ public class StaticMethods implements Eterable<TypedFn> {
         methods.remove(method);
         methodsMap.remove(key);
     }
-
 
     /**
      * Удаляет указанный метод из набора

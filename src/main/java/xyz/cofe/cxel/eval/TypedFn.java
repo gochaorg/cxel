@@ -18,7 +18,7 @@ public interface TypedFn {
      * Возвращает тип аргументов
      * @return тип аргументов
      */
-    Type[] getParametersType();
+    Type[] getParameterTypes();
 
     /**
      * Возврщает тип реузльтата
@@ -48,7 +48,7 @@ public interface TypedFn {
         if( retType==null )throw new IllegalArgumentException("retType==null");
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[0];
             }
 
@@ -70,7 +70,7 @@ public interface TypedFn {
         if( retType==null )throw new IllegalArgumentException("retType==null");
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{};
             }
 
@@ -96,7 +96,7 @@ public interface TypedFn {
         if( retType==null )throw new IllegalArgumentException("retType==null");
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0 };
             }
 
@@ -132,7 +132,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1 };
             }
 
@@ -171,7 +171,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2 };
             }
 
@@ -213,7 +213,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3 };
             }
 
@@ -258,7 +258,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3, a4 };
             }
 
@@ -306,7 +306,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3, a4, a5 };
             }
 
@@ -357,7 +357,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3, a4, a5, a6 };
             }
 
@@ -411,7 +411,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3, a4, a5, a6, a7 };
             }
 
@@ -468,7 +468,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3, a4, a5, a6, a7, a8 };
             }
 
@@ -528,7 +528,7 @@ public interface TypedFn {
 
         return new TypedFn() {
             @Override
-            public Type[] getParametersType() {
+            public Type[] getParameterTypes() {
                 return new Type[]{ a0, a1, a2, a3, a4, a5, a6, a7, a8, a9 };
             }
 
