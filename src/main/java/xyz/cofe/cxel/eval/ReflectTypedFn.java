@@ -15,12 +15,14 @@ public class ReflectTypedFn implements TypedFn {
 
     private final Method method;
 
+    public Method getMethod(){ return method; }
+
     public boolean isStatic(){
         return (method.getModifiers() & Modifier.STATIC) == Modifier.STATIC;
     }
 
     @Override
-    public Type[] getParametersType() {
+    public Type[] getParameterTypes() {
         return method.getGenericParameterTypes();
     }
 
