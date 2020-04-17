@@ -325,99 +325,95 @@ public class Parser {
     //endregion
 
     /**
-     * Оператор умножения/деления <br>
-     * multipleDevideOperator ::= {@link #atomValue}
-     * {
-     *   ( {@link Keyword#Multiple mul} | {@link Keyword#Divide div} )
-     *   {@link #postfix(GR) postfix}
-     * }
+     * Создает последовательность бинарных операторов.
+     * <p>
+     *     Чтоб не писать последовательность однотипных операторов
+     *     показаных ниже
+     * </p>
+     * <pre>
+     * public static final GR<TPointer, ? extends AST> mulDiv
+     *   = binaryOp(
+     *        postfix(atomValue),
+     *        Keyword.parserOf( Keyword.Multiple, Keyword.Divide ),
+     *        postfix(atomValue));
+     *
+     * public static final GR<TPointer, ? extends AST> plusMinus
+     *   = binaryOp(
+     *       mulDiv,
+     *       Keyword.parserOf( Keyword.Plus, Keyword.Minus ),
+     *       mulDiv);
+     *
+     * public static final GR<TPointer, ? extends AST> shift
+     *   = binaryOp(
+     *       plusMinus,
+     *       Keyword.parserOf(
+     *         Keyword.BitLeftShift,
+     *         Keyword.BitRightShift,
+     *         Keyword.BitRRightShift ),
+     *       plusMinus);
+     * </pre>
+     *
+     * Всю эту последовательность можно свернуть,
+     * где начальное правило (аргмент start) в данном примере это - postfix(atomValue).
+     * <p>
+     *
+     * А последовательность/приоритет операторов в данном случаи это:
+     *
+     * <pre>
+     * [ Keyword.parserOf( Keyword.Multiple, Keyword.Divide )
+     * , Keyword.parserOf( Keyword.Plus, Keyword.Minus )
+     * , Keyword.parserOf(
+     *      Keyword.BitLeftShift,
+     *      Keyword.BitRightShift,
+     *      Keyword.BitRRightShift )
+     * ]
+     * </pre>
+     *
+     * @param start Начальное правило
+     * @param orderKeywords Имена операторов в последовательности уменьшения приоритета
+     * @return Бинарные операторы
      */
-    public static final GR<TPointer, ? extends AST> mulDiv
-        = binaryOp(
-        postfix(atomValue),
-        Keyword.parserOf( Keyword.Multiple, Keyword.Divide ),
-        postfix(atomValue)
-    );
+    public static GR<TPointer, ? extends AST> binaryOps(
+        GR<TPointer, ? extends AST> start,
+        GR<TPointer,KeywordAST> ... orderKeywords
+    ) {
+        if( start==null )throw new IllegalArgumentException("start==null");
+        if( orderKeywords==null )throw new IllegalArgumentException("orderKeywords==null");
+
+        GR<TPointer, ? extends AST> gr = start;
+        for( GR<TPointer,KeywordAST> kw : orderKeywords ){
+            gr = binaryOp( gr, kw, gr );
+        }
+
+        return gr;
+    }
 
     /**
-     * Оператор сложения/вычитания <br>
-     * plusMinusOperator ::= {@link #mulDiv mulDiv}
-     * {
-     *   ( {@link Keyword#Plus plus} | {@link Keyword#Minus minus} )
-     *   {@link #mulDiv mulDiv}
-     * }
+     * Бинарные операции
      */
-    public static final GR<TPointer, ? extends AST> plusMinus
-        = binaryOp(
-        mulDiv,
-        Keyword.parserOf( Keyword.Plus, Keyword.Minus ),
-        mulDiv
-    );
-
-    /**
-     * Оператор сравнения <br>
-     * compare ::= {@link #plusMinus}
-     * {
-     *   ( {@link Keyword#Less &lt;} |
-     *     {@link Keyword#LessOrEquals &lt;=} |
-     *     {@link Keyword#More &gt;} |
-     *     {@link Keyword#MoreOrEquals &gt;=} |
-     *     {@link Keyword#Equals ==} |
-     *     {@link Keyword#NotEquals !=}
-     *   )
-     *   {@link #plusMinus}
-     * }
-     */
-    public static final GR<TPointer, ? extends AST> compare
-        = binaryOp(
-        plusMinus,
-        Keyword.parserOf(
-            Keyword.Less,
-            Keyword.LessOrEquals,
-            Keyword.More,
-            Keyword.MoreOrEquals,
-            Keyword.Equals,
-            Keyword.NotEquals,
-            Keyword.StrongEquals,
-            Keyword.StrongNotEquals
-        ),
-        plusMinus
-    );
-
-    /**
-     * Оператор И <br>
-     * and ::= {@link #compare}
-     * {
-     *   {@link Keyword#And}
-     *   {@link #compare}
-     * }
-     */
-    public static final GR<TPointer, ? extends AST> and
-        = binaryOp(
-        compare,
-        Keyword.And.parser(),
-        compare
-    );
-
-    /**
-     * Оператор ИЛИ <br>
-     * or ::= {@link #compare}
-     * {
-     *   {@link Keyword#Or}
-     *   {@link #compare}
-     * }
-     */
-    public static final GR<TPointer, ? extends AST> or
-        = binaryOp(
-        and,
-        Keyword.Or.parser(),
-        and
-    );
-    //endregion
+    public static final GR<TPointer, ? extends AST> binaryOps
+        = binaryOps(
+            postfix(atomValue)
+            , Keyword.parserOf( Keyword.Multiple, Keyword.Divide )
+            , Keyword.parserOf( Keyword.Plus, Keyword.Minus )
+            , Keyword.parserOf( Keyword.BitLeftShift, Keyword.BitRightShift, Keyword.BitRRightShift )
+            , Keyword.parserOf(
+                Keyword.Less,
+                Keyword.LessOrEquals,
+                Keyword.More,
+                Keyword.MoreOrEquals,
+                Keyword.Equals,
+                Keyword.NotEquals,
+                Keyword.StrongEquals,
+                Keyword.StrongNotEquals
+            )
+            , Keyword.And.parser()
+            , Keyword.Or.parser()
+        );
 
     //region Инициализация рекурсии expression
     static {
-        expression.setTarget(or);
+        expression.setTarget(binaryOps);
         //expression.setTarget(postfix());
     }
     //endregion
