@@ -45,6 +45,9 @@ public enum Keyword {
 
     /** Битовое и */ BitAnd("&"),
     /** Битовое или */ BitOr("|"),
+    /** Битовый сдвиг */ BitLeftShift("<<"),
+    /** Битовый сдвиг */ BitRightShift(">>"),
+    /** Битовый сдвиг */ BitRRightShift(">>>"),
 
     /** Тильда */ Tilde("~"),
 
