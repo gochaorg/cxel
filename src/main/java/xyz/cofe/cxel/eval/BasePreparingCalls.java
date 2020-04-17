@@ -13,6 +13,13 @@ import java.util.Optional;
  * см реализацию {@link #prepare(Object, String, List)}
  */
 public abstract class BasePreparingCalls implements PreparingCalls {
+    /**
+     * Имя функции в контексте
+     * которая реализует имплицитное преобразование
+     * типов аргументов
+     */
+    public static final String IMPLICIT="implicit";
+
     protected final EvalContext context;
 
     public BasePreparingCalls(EvalContext context) {
@@ -39,11 +46,13 @@ public abstract class BasePreparingCalls implements PreparingCalls {
         return targetFunctions
                 .map( m->{
             Call rcall = null;
-            Type[] params = m.getParametersType();
+            Type[] params = m.getParameterTypes();
             if( params.length==0 ){
                 rcall = new Call(inst,m);
+                rcall.setInputArgs(args);
             }else{
                 rcall = new Call(inst,m);
+                rcall.setInputArgs(args);
                 for( int pi=0; pi<params.length; pi++ ){
                     Class<?> p = (Class<?>) params[pi];
                     if( pi>=args.size() ){
@@ -88,7 +97,42 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                     }
                                 }else{
                                     // Нет совместимых вариантов
-                                    rcall.getArgs().add(ArgPass.unpassable(pi, pt, arg));
+                                    // Поиск имплицитного преобразования типа
+                                    StaticMethods implicitCasts = null;
+
+                                    if( context!=null ){
+                                        Optional<Object> oImplicitCasts = context.tryRead(IMPLICIT);
+                                        if( oImplicitCasts!=null && oImplicitCasts.isPresent() && oImplicitCasts.get() instanceof StaticMethods ){
+                                            StaticMethods sm = (StaticMethods)oImplicitCasts.get();
+                                            implicitCasts = sm.sameRetAndArgs(pt, at);
+                                        }
+                                    }
+
+                                    if( implicitCasts!=null && implicitCasts.size()==1 ) {
+                                        if( implicitCasts.size()==1 ) {
+                                            // Найдено одно и единственное возможное имплицитное преобразование
+                                            TypedFn implctCaster = implicitCasts.first().get();
+                                            Object castedValue = implctCaster.call(null, new Object[]{arg});
+                                            rcall.getArgs().add(ArgPass.implicit(pi, pt, castedValue));
+                                        }else{
+                                            if( implicitCasts.size()==0 ) {
+                                                // Подходящих имплицитных преобразований не найдено
+                                                // Нет совместимых вариантов
+                                                rcall.getArgs().add(ArgPass.unpassable(pi, pt, arg));
+                                            }else{
+                                                System.err.println("found multiple implicit argument cast");
+                                                int idx=-1;
+                                                for( TypedFn tFn : implicitCasts ){
+                                                    idx++;
+                                                    System.out.println("  implicit cast #"+idx+":"+tFn);
+                                                }
+                                            }
+                                        }
+                                    }else {
+                                        // Подходящих имплицитных преобразований не найдено
+                                        // Нет совместимых вариантов
+                                        rcall.getArgs().add(ArgPass.unpassable(pi, pt, arg));
+                                    }
                                 }
                             }
                         }
