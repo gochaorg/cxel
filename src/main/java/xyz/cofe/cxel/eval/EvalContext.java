@@ -8,17 +8,14 @@ import xyz.cofe.cxel.ast.StringAST;
 import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.cxel.eval.score.DefaultScrolling;
 import xyz.cofe.fn.*;
-import xyz.cofe.iter.Eterable;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiFunction;
@@ -311,6 +308,13 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции
+     * @param name имя функции
+     * @param typedFn функция
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public EvalContext bindFn( String name, TypedFn typedFn ){
         if( name==null )throw new IllegalArgumentException("name==null");
         if( typedFn==null )throw new IllegalArgumentException("typedFn==null");
@@ -320,6 +324,15 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции без аргументов
+     * @param name имя функции
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <Z> EvalContext bindFn( String name, Class<Z> retType, Supplier<Z> fn ){
         if( name==null )throw new IllegalArgumentException("name==null");
         if( fn==null )throw new IllegalArgumentException("fn==null");
@@ -329,7 +342,17 @@ public class EvalContext {
         return this;
     }
 
-    public <A,Z> EvalContext bindFn( String name, Class<A> arg0, Class<Z> retType, Function<A,Z> fn ){
+    /**
+     * Добавление глобальной функции c 1 аргументом
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public <A,Z> EvalContext bindFn(String name, Class<A> arg0, Class<Z> retType, Function<A,Z> fn ){
         if( name==null )throw new IllegalArgumentException("name==null");
         if( fn==null )throw new IllegalArgumentException("fn==null");
         bindStatic(name, st->{
@@ -338,6 +361,17 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 2 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,Z> EvalContext bindFn( String name, Class<A> arg0, Class<B> arg1, Class<Z> retType, BiFunction<A,B,Z> fn ){
         if( name==null )throw new IllegalArgumentException("name==null");
         if( fn==null )throw new IllegalArgumentException("fn==null");
@@ -351,6 +385,18 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 3 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2,
                                          Class<Z> retType,
@@ -367,6 +413,19 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 4 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3,
                                          Class<Z> retType,
@@ -383,6 +442,20 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 5 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param arg4 тип 5-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,E,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
                                          Class<Z> retType,
@@ -399,6 +472,21 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 6 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param arg4 тип 5-го армента
+     * @param arg5 тип 6-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,E,F,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
                                          Class<F> arg5,
@@ -416,6 +504,21 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 7 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param arg4 тип 5-го армента
+     * @param arg5 тип 6-го армента
+     * @param arg6 тип 7-го армента
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,E,F,G,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
                                          Class<F> arg5, Class<G> arg6,
@@ -433,6 +536,23 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 8 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param arg4 тип 5-го армента
+     * @param arg5 тип 6-го армента
+     * @param arg6 тип 7-го армента
+     * @param arg7 тип 8-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,E,F,G,H,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
                                          Class<F> arg5, Class<G> arg6, Class<H> arg7,
@@ -450,6 +570,24 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 9 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param arg4 тип 5-го армента
+     * @param arg5 тип 6-го армента
+     * @param arg6 тип 7-го армента
+     * @param arg7 тип 8-го армента
+     * @param arg8 тип 9-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,E,F,G,H,I,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
                                          Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8,
@@ -467,6 +605,25 @@ public class EvalContext {
         return this;
     }
 
+    /**
+     * Добавление глобальной функции c 10 аргументами
+     * @param name имя функции
+     * @param arg0 тип первого армента
+     * @param arg1 тип второго армента
+     * @param arg2 тип 3-го армента
+     * @param arg3 тип 4-го армента
+     * @param arg4 тип 5-го армента
+     * @param arg5 тип 6-го армента
+     * @param arg6 тип 7-го армента
+     * @param arg7 тип 8-го армента
+     * @param arg8 тип 9-го армента
+     * @param arg9 тип 10-го армента
+     * @param retType возвращаемый тип
+     * @param fn функция
+     * @param <Z> возвращаемый тип
+     * @return self ссылка
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public <A,B,C,D,E,F,G,H,I,J,Z> EvalContext bindFn( String name,
                                          Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
                                          Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8, Class<J> arg9,
@@ -541,7 +698,7 @@ public class EvalContext {
                 // найдены два или более равнозначных варианта
                 StringBuilder sb = new StringBuilder();
                 for( int pi=0; pi<minScore.size(); pi++ ){
-                    sb.append(pi+": ");
+                    sb.append(pi).append(": ");
                     sb.append("weight=").append(minScore.get(pi).b());
                     sb.append(" prepared call: ");
 
@@ -549,7 +706,7 @@ public class EvalContext {
                     if( pcall instanceof Call ){
                         Call cl = (Call)pcall;
                         sb.append("method=").append(cl.getMethod());
-                        sb.append("args("+cl.getArgs().size()+"):\n");
+                        sb.append("args(").append(cl.getArgs().size()).append("):\n");
                         for( int ai=0;ai<cl.getArgs().size();ai++ ){
                             sb.append("arg[").append("]:");
                             ArgPass apss = cl.getArgs().get(ai);
@@ -576,7 +733,7 @@ public class EvalContext {
                 }
                 throw new EvalError(
                     "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
-                        " ambiguous methods calls found"
+                        " ambiguous methods calls found:\n"+sb
                 );
             }else if( minScore.size()<1 ){
                 // нету ни одного подходящего варианта
@@ -615,8 +772,7 @@ public class EvalContext {
             for( PropertyDescriptor pd : bi.getPropertyDescriptors() ){
                 if( propertyName.equals(pd.getName()) && pd.getReadMethod()!=null ){
                     Method m = pd.getReadMethod();
-                    Object r = m.invoke(base);
-                    return r;
+                    return m.invoke(base);
                 }
             }
         }catch( InvocationTargetException | IllegalAccessException | IntrospectionException e ){
@@ -670,6 +826,10 @@ public class EvalContext {
         bindStaticMethods(FloatOperators.class);
         bindStaticMethods(DoubleOperators.class);
         bindStaticMethods(UnaryOperations.class);
+
+        bindStaticMethods(BitOperations.class);
+
+        //noinspection ConstantConditions
         bindStaticMethod("+",
             CharSequence.class,CharSequence.class,
             String.class,
