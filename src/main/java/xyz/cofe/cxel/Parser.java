@@ -158,7 +158,7 @@ public class Parser {
 
     /**
      * Выражение <br>
-     * expression ::= {@link #or}
+     * expression ::= {@link #binaryOps}
      */
     public static final ProxyGR<TPointer,AST> expression = new ProxyGR<>(dummy);
 
@@ -172,8 +172,12 @@ public class Parser {
      * {@link #expression}
      */
     public static final GR<TPointer, ? extends AST> unaryExression
-        = Keyword.parserOf( Keyword.Minus, Keyword.Not, Keyword.Tilde )
-          .next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
+        = Keyword.parserOf(
+            Keyword.Minus,
+            Keyword.Plus,
+            Keyword.Not,
+            Keyword.Tilde
+        ).next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
     //endregion
 
     //region Атомарные значения
@@ -394,7 +398,8 @@ public class Parser {
     public static final GR<TPointer, ? extends AST> binaryOps
         = binaryOps(
             postfix(atomValue)
-            , Keyword.parserOf( Keyword.Multiple, Keyword.Divide )
+            , Keyword.Power.parser()
+            , Keyword.parserOf( Keyword.Multiple, Keyword.Divide, Keyword.Modulo )
             , Keyword.parserOf( Keyword.Plus, Keyword.Minus )
             , Keyword.parserOf( Keyword.BitLeftShift, Keyword.BitRightShift, Keyword.BitRRightShift )
             , Keyword.parserOf(
