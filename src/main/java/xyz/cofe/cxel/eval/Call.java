@@ -3,9 +3,6 @@ package xyz.cofe.cxel.eval;
 import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.eval.score.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -29,6 +26,16 @@ public class Call
     public Call configure(Consumer<Call> conf ){
         if( conf != null ) conf.accept(this);
         return this;
+    }
+
+    protected List<Object> inputArgs;
+
+    public List<Object> getInputArgs() {
+        return inputArgs;
+    }
+
+    public void setInputArgs(List<Object> inputArgs) {
+        this.inputArgs = inputArgs;
     }
 
     //region instance : Object
@@ -89,7 +96,7 @@ public class Call
         if( nonNullArgs.stream().anyMatch(m -> !m.isPassable()) ) return false;
 
         Map<Integer, Boolean> argPassable = new LinkedHashMap<>();
-        for( int i = 0; i < method.getParametersType().length; i++ ) argPassable.put(i, false);
+        for(int i = 0; i < method.getParameterTypes().length; i++ ) argPassable.put(i, false);
         nonNullArgs.forEach(m -> {
             argPassable.put(m.getIndex(), m.isPassable());
         });
@@ -104,7 +111,7 @@ public class Call
         if( !callable() ) throw new EvalError("can't calling");
 
         TypedFn method = getMethod();
-        Object[] params = new Object[method.getParametersType().length];
+        Object[] params = new Object[method.getParameterTypes().length];
 
         getArgs().stream().filter(Objects::nonNull).forEach(pa -> {
             if( pa.getIndex() >= 0 && pa.getIndex() < params.length )
@@ -120,8 +127,9 @@ public class Call
     @Override
     public int argsCasing(){
         TypedFn method = getMethod();
-        if( method!=null ){
-            return Math.abs(method.getParametersType().length - getArgs().size());
+        List<Object> inptArgs = getInputArgs();
+        if( method!=null && inptArgs!=null ){
+            return Math.abs(method.getParameterTypes().length - inptArgs.size());
         }else {
             return Integer.MAX_VALUE;
         }
@@ -156,8 +164,32 @@ public class Call
     public int parameterCount(){
         TypedFn method = getMethod();
         if( method!=null ){
-            return method.getParametersType().length;
+            return method.getParameterTypes().length;
         }
         return 0;
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("Call");
+
+        sb.append(" paramsCount=").append(parameterCount());
+        sb.append(" argsCasing=").append(argsCasing());
+        sb.append(" invariantArgs=").append(invariantArgs());
+        sb.append(" primitiveCastArgs=").append(primitiveCastArgs());
+        sb.append(" castLooseDataArgs=").append(castLooseDataArgs());
+        sb.append(" covariantArgs=").append(covariantArgs());
+        sb.append(" implicitArgs=").append(implicitArgs());
+
+        TypedFn tf = method;
+        if( tf!=null ){
+            if( tf instanceof ReflectTypedFn ){
+                sb.append(" reflect method=").append(((ReflectTypedFn) tf).getMethod());
+            }else{
+                sb.append(" method=").append(tf);
+            }
+        }
+
+        return sb.toString();
     }
 }
