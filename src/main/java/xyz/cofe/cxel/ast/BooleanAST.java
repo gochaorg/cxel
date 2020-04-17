@@ -7,7 +7,7 @@ import xyz.cofe.text.tparse.TPointer;
 /**
  * Литерал - булево
  */
-public class BooleanAST extends ASTBase<BooleanAST> {
+public class BooleanAST extends ASTBase<BooleanAST> implements LiteralAST {
     /**
      * Конструктор копирования
      * @param sample образец для копирования

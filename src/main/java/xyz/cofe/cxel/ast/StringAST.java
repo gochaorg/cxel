@@ -6,7 +6,7 @@ import xyz.cofe.text.tparse.TPointer;
 /**
  * Строковой литерал
  */
-public class StringAST extends ASTBase<StringAST> {
+public class StringAST extends ASTBase<StringAST> implements LiteralAST {
     /**
      * Конструктор по умолчанию
      */

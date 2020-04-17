@@ -15,6 +15,22 @@ public class SamplesTest {
         );
     }
 
+    public static class Bean1 {
+        private int v1;
+        public int getV1() { return v1; }
+        public void setV1(int v1) { this.v1 = v1; }
+
+        private long v2;
+        public long getV2() { return v2; }
+        public void setV2(long v2) { this.v2 = v2; }
+
+        public Bean1(){}
+        public Bean1(int v1,long v2){
+            this.v1 = v1;
+            this.v2 = v2;
+        }
+    }
+
     @Test
     public void bindVariables(){
         System.out.println(
@@ -39,6 +55,11 @@ public class SamplesTest {
 
         System.out.println(
             Eval.parse( "o['f3'] + o['f4'] ").context(c->c.bind("o",m)).eval()
+        );
+
+        Bean1 b1 = new Bean1();
+        System.out.println(
+            Eval.parse("b.v1 + b.v2 + 10.0d").context(c->c.bind("b",b1)).eval()
         );
     }
 

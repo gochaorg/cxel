@@ -402,4 +402,19 @@ public class ParserTest {
         System.out.println(" min: "+minPos);
         System.out.println(" max: "+maxPos);
     }
+
+    @Test
+    public void listExpr(){
+        parse("[ true, 'abc', 10, null ]").run();
+    }
+
+    @Test
+    public void mapExpr(){
+        parse("{}").run();
+        parse("{ key: true }").run();
+        parse("{ 'key name': 'value' }").run();
+        parse("{ true: true }").run();
+        parse("{ (1+2): true }").run();
+        parse("{ key1: true, key2: 'val2' }").run();
+    }
 }

@@ -6,7 +6,7 @@ import xyz.cofe.text.tparse.TPointer;
 /**
  * Литерал - число
  */
-public class NumberAST extends ASTBase<NumberAST> {
+public class NumberAST extends ASTBase<NumberAST> implements LiteralAST {
     /**
      * Конструктор копирования
      * @param sample образец для копирования

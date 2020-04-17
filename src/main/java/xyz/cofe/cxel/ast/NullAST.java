@@ -6,7 +6,7 @@ import xyz.cofe.text.tparse.TPointer;
 /**
  * Литерал - null
  */
-public class NullAST extends ASTBase<NullAST> {
+public class NullAST extends ASTBase<NullAST> implements LiteralAST {
     /**
      * Конструктор копирования
      * @param sample образец для копирования

@@ -201,6 +201,217 @@ public class Parser {
         = atomic(IdTok.class, VarRefAST::new);
 
     /**
+     * Список значений <br>
+     * list ::=
+     *   {@link Keyword#OpenBracket '['}
+     *   [ {@link #expression}
+     *     {
+     *         {@link Keyword#Comma ','}
+     *         {@link #expression}
+     *     }
+     *   ]
+     *   {@link Keyword#CloseBracket ']'}
+     * @param expr ссылка на правило {@link #expression}
+     * @return Правило создания списка
+     */
+    public static GR<TPointer, ? extends AST> list( GR<TPointer, ? extends AST> expr ){
+        if( expr==null )throw new IllegalArgumentException("expr==null");
+        return ptr -> {
+            if( !Keyword.OpenBracket.match( ptr.lookup(0) ) )return Optional.empty();
+
+            TPointer begin = ptr;
+            TPointer end = null;
+            List<AST> expLst = new ArrayList<>();
+
+            ptr = ptr.move(1);
+            if( Keyword.CloseBracket.match(ptr.lookup(0)) ){
+                end = ptr.move(1);
+            }else {
+                while (true) {
+                    if (ptr.eof()) return Optional.empty();
+
+                    Optional<? extends AST> exp = expr.apply(ptr);
+                    if (exp == null || !exp.isPresent()) {
+                        break;
+                    }
+
+                    if (Keyword.Comma.match(exp.get().end().lookup(0))) {
+                        expLst.add(exp.get());
+                        ptr = exp.get().end().move(1);
+                        continue;
+                    }
+
+                    if (Keyword.CloseBracket.match(exp.get().end().lookup(0))) {
+                        expLst.add(exp.get());
+                        end = exp.get().end().move(1);
+                        break;
+                    }
+
+                    throw new ParseError(
+                        "await Keyword.Comma or Keyword.CloseBracket at "+
+                            exp.get().end()
+                    );
+                }
+            }
+
+            if( end!=null ){
+                return Optional.of( new ListAST(begin,end,expLst) );
+            }
+
+            return Optional.empty();
+        };
+    }
+
+    public static GR<TPointer, ? extends AST> map(
+        GR<TPointer, ? extends AST> literal,
+        GR<TPointer, ? extends AST> expr
+    ){
+        if( literal==null )throw new IllegalArgumentException("literal==null");
+        if( expr==null )throw new IllegalArgumentException("expr==null");
+        return startPtr -> {
+            if( !Keyword.OpenBrace.match(startPtr.lookup(0)) )return Optional.empty();
+            if( Keyword.CloseBrace.match(startPtr.lookup(1)) ){
+                return Optional.of(
+                    new MapAST( startPtr, startPtr.move(2), new MapEntryAST[0] )
+                );
+            }
+
+            TPointer end = null;
+            TPointer ptr = startPtr.move(1);
+            List<MapEntryAST<?,?>> entries = new ArrayList<>();
+
+            while (true){
+                Optional<CToken> key = ptr.lookup(0);
+                if( key==null || !key.isPresent() )break;
+
+                CToken tkey = key.get();
+                if( tkey instanceof IdTok ) {
+                    if (Keyword.Colon.match(ptr.lookup(1))) {
+                        Optional<? extends AST> exp = expr.apply(ptr.move(2));
+                        if( exp!=null && exp.isPresent() ){
+                            VarRefAST propId = new VarRefAST(ptr, (IdTok) tkey);
+                            AST aexp = exp.get();
+
+                            MapEntryAST<?,?> entry = new MapPropEntreyAST(ptr,aexp.end(),propId,aexp);
+                            entries.add(entry);
+
+                            if( Keyword.Comma.match(entry.end().lookup(0)) ){
+                                ptr = entry.end().move(1);
+                                continue;
+                            }
+                            if( Keyword.CloseBrace.match(entry.end().lookup(0)) ){
+                                end = entry.end().move(1);
+                                break;
+                            }
+                            throw new ParseError(
+                                "await Keyword.Comma or Keyword.CloseBracket at "+
+                                    entry.end()
+                            );
+                        }
+                    }
+                }
+
+                if( Keyword.OpenParenthes.match(tkey) ){
+                    Optional<? extends AST> keyExp = expr.apply(ptr.move(1));
+                    if( keyExp!=null && keyExp.isPresent() ){
+                        if( !Keyword.CloseParenthes.match(keyExp.get().end().lookup(0)) ){
+                            throw new ParseError(
+                                "await Keyword.CloseParenthes at "+
+                                    keyExp.get().end()
+                            );
+                        }
+
+                        if( !Keyword.Colon.match(keyExp.get().end().lookup(1)) ){
+                            throw new ParseError(
+                                "await Keyword.Colon at "+
+                                    keyExp.get().end().move(1)
+                            );
+                        }
+
+                        Optional<? extends AST> exp = expr.apply(keyExp.get().end().move(2));
+                        if( exp!=null && exp.isPresent() ){
+                            AST aexp = exp.get();
+
+                            MapEntryAST<?,?> entry = new MapExprEntreyAST(
+                                ptr,
+                                aexp.end(),
+                                keyExp.get(),
+                                aexp
+                            );
+                            entries.add(entry);
+
+                            if( Keyword.Comma.match(entry.end().lookup(0)) ){
+                                ptr = entry.end().move(1);
+                                continue;
+                            }
+                            if( Keyword.CloseBrace.match(entry.end().lookup(0)) ){
+                                end = entry.end().move(1);
+                                break;
+                            }
+
+                            throw new ParseError(
+                                "await Keyword.Comma or Keyword.CloseBracket at "+
+                                    entry.end()
+                            );
+                        }
+                    }
+                }
+
+                Optional<? extends AST> oliteral = literal.apply(ptr);
+                if( oliteral!=null && oliteral.isPresent() ){
+                    AST keyExp = oliteral.get();
+                    if (Keyword.Colon.match(keyExp.end().lookup(0))) {
+                        Optional<? extends AST> exp = expr.apply(keyExp.end().move(1));
+                        if( exp!=null && exp.isPresent() ){
+                            LiteralAST lAst = (LiteralAST) keyExp;
+                            AST aexp = exp.get();
+                            MapEntryAST<?,?> entry = new MapLiteralEntreyAST(
+                                ptr,
+                                aexp.end(),
+                                lAst,
+                                aexp
+                            );
+                            entries.add(entry);
+
+                            if( Keyword.Comma.match(entry.end().lookup(0)) ){
+                                ptr = entry.end().move(1);
+                                continue;
+                            }
+                            if( Keyword.CloseBrace.match(entry.end().lookup(0)) ){
+                                end = entry.end().move(1);
+                                break;
+                            }
+
+                            throw new ParseError(
+                                "await Keyword.Comma or Keyword.CloseBracket at "+
+                                    entry.end()
+                            );
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            if( end!=null ){
+                MapAST mapAST = new MapAST(startPtr, end, entries);
+                return Optional.of(mapAST);
+            }
+
+            return Optional.empty();
+        };
+    }
+
+//    public static final GR<TPointer,? extends AST> literal
+//        = nullConst.another(
+//            number
+//        ).another(
+//            bool
+//        ).another(
+//            atomic(StringTok.class,StringAST::new)
+//        ).map( t->(AST)t );
+
+    /**
      * Атомарное значение <br>
      * atomValue ::=
      *     {@link #bracketExpression} <br>
@@ -213,6 +424,17 @@ public class Parser {
      */
     public static final GR<TPointer,? extends AST> atomValue
         = bracketExpression
+              .another(list(expression))
+              .another(map(
+                  nullConst.<AST>another(
+                      number
+                  ).<TPointer,AST>another(
+                      bool
+                  ).<TPointer,AST>another(
+                      atomic(StringTok.class,StringAST::new)
+                  ).map( t->(AST)t ),
+                  expression
+              ))
               .another(number)
               .another(bool)
               .another(nullConst)
