@@ -1,12 +1,12 @@
 package xyz.cofe.cxel;
 
 import org.junit.jupiter.api.Test;
-import xyz.cofe.cxel.eval.EvalContext;
-import xyz.cofe.cxel.eval.FnName;
+import xyz.cofe.cxel.eval.*;
 import xyz.cofe.cxel.eval.op.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class EvalContextTest {
@@ -119,5 +119,23 @@ public class EvalContextTest {
     @FnName({"|","||"})
     public static boolean or( boolean a, boolean b ){ return a || b; }
 
+    @Test
+    public void implicit01(){
+        EvalContext ctx = new EvalContext();
 
+        StaticMethods sm = new StaticMethods();
+        ctx.bind(BasePreparingCalls.IMPLICIT, sm);
+
+        ctx.bindStaticMethods(BitOperations.class);
+
+        //sm.add(TypedFn.method(Object.class, int.class, long.class, (inst,i) -> (long)i));
+        //sm.add(TypedFn.method(Object.class, Integer.class, long.class, (inst,i) -> (long)i));
+
+        sm.add(TypedFn.method(Object.class, double.class, long.class, (inst,n) -> (long)((double)n)) );
+        sm.add(TypedFn.method(Object.class, Double.class, long.class, (inst,n) -> ((Double)n).longValue()) );
+        sm.add(TypedFn.method(Object.class, String.class, long.class, (inst,n) -> Long.parseLong(n)) );
+
+        Object res = ctx.call(null,"|", Arrays.asList("2",10.0d));
+        System.out.println("res = "+res+(res!=null ? " : "+res.getClass() : ""));
+    }
 }
