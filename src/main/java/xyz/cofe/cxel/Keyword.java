@@ -61,6 +61,8 @@ public enum Keyword {
     /** Минус */ Minus("-"),
     /** Делить */ Divide("/"),
     /** Множить */ Multiple("*"),
+    /** Остаток от деления */ Modulo("%"),
+    /** Возведение в степень */ Power("**"),
     /** Точка */ Dot(".")
     ;
 
@@ -97,6 +99,11 @@ public enum Keyword {
         ordDescByLen = kws;
         return ordDescByLen;
     }
+
+    /**
+     * Возвращает правило для лексичекого анализа данной лексемы
+     * @return правило / парсер
+     */
     public GR<CharPointer, KeywordTok> lex(){
         return ptr -> {
             for( int i=0; i<text.length(); i++ ){
