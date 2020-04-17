@@ -102,7 +102,7 @@ public class ParserTest {
 
     @Test
     public void test01(){
-        tryParse("1 + 2 + 3",true, true, 6L);
+        tryParse("1 + 2 + 3",true, true, 6);
         tryParse( "1 * 2 + 3 - 4 / 5", false);
     }
 
@@ -126,7 +126,7 @@ public class ParserTest {
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);
         assertTrue(evRes!=null);
-        assertTrue(evRes.equals(-1L));
+        assertTrue(evRes.equals(-1));
 
         System.out.println("...................");
         psource = Parser.source("-1*(2-3)");
@@ -138,7 +138,22 @@ public class ParserTest {
         evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);
         assertTrue(evRes!=null);
-        assertTrue(evRes.equals(1L));
+        assertTrue(evRes.equals(1));
+    }
+
+    @Test
+    public void test02_2(){
+        System.out.println("...................");
+        TPointer psource = Parser.source("-1*(2-3)");
+        Optional<AST> astRoot = Parser.expression.apply( psource );
+        Assertions.assertTrue(astRoot.isPresent());
+        ASTDump.build().dump( astRoot.get() );
+
+        Eval ev = new Eval();
+        Object evRes = ev.eval(astRoot.get());
+        System.out.println("eval result: "+evRes);
+        assertTrue(evRes!=null);
+        assertTrue(evRes.equals(1));
     }
 
     @Test
