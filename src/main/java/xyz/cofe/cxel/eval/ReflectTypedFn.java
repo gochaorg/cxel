@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 
 public class ReflectTypedFn implements TypedFn {
     public ReflectTypedFn(Method method){
@@ -23,7 +24,17 @@ public class ReflectTypedFn implements TypedFn {
 
     @Override
     public Type[] getParameterTypes() {
-        return method.getGenericParameterTypes();
+        if( isStatic() ){
+            return method.getGenericParameterTypes();
+        }else {
+            Type[] params = method.getGenericParameterTypes();
+
+            Type[] res = new Type[params.length + 1];
+            System.arraycopy(params, 0, res, 1, params.length);
+
+            res[0] = method.getDeclaringClass();
+            return res;
+        }
     }
 
     @Override
@@ -32,11 +43,22 @@ public class ReflectTypedFn implements TypedFn {
     }
 
     @Override
-    public Object call(Object inst, Object[] args) {
+    public Object call(Object[] args) {
         try {
-            return method.invoke(inst, args);
+            if( isStatic() ){
+                return method.invoke(null, args);
+            }else {
+                Object inst = args.length > 0 ? args[0] : null;
+                Object[] nargs = args.length > 0 ? Arrays.copyOfRange(args, 1, args.length) : args;
+                return method.invoke(inst, nargs);
+            }
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new EvalError(e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return ReflectTypedFn.class.getSimpleName()+" "+method;
     }
 }

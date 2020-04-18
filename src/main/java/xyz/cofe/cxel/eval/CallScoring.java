@@ -69,7 +69,8 @@ public interface CallScoring<CALL extends PreparedCall> {
     /**
      * Подсчет кол-ва баллов для конкретного варианта вызова
      * @param preparedCall вариант вызова
+     * @param scope Область из которой был подготовлен вызов
      * @return кол-во баллов
      */
-    public int calculate( CALL preparedCall );
+    public int calculate( CALL preparedCall, PreparingCalls scope );
 }

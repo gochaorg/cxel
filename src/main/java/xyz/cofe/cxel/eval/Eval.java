@@ -211,23 +211,18 @@ public class Eval {
      */
     protected Object operator( UnaryOpAST op ){
         Object v = eval(op.operand());
-        return context.call(null,op.opText(), Collections.singletonList(v));
+        return context.call( op.opText(), Collections.singletonList(v));
     }
 
     /**
      * Интерпретация бинарного оператора
      * @param op AST узел,
-     *           см {@link xyz.cofe.cxel.Parser#mulDiv},
-     *           {@link xyz.cofe.cxel.Parser#plusMinus},
-     *           {@link xyz.cofe.cxel.Parser#and},
-     *           {@link xyz.cofe.cxel.Parser#or},
-     *           {@link xyz.cofe.cxel.Parser#compare},
      * @return результат интерпретации, см {@link EvalContext#call}
      */
     protected Object operator( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         Object vRight = eval(op.right());
-        return context.call(null,op.opText(), Arrays.asList(vLeft,vRight));
+        return context.call(op.opText(), Arrays.asList(vLeft,vRight));
     }
 
     /**
@@ -262,7 +257,7 @@ public class Eval {
                 args.add( eval(arg) );
             }
 
-            return context.call(null, ((VarRefAST) base).variable(), args );
+            return context.call( ((VarRefAST) base).variable(), args );
         }else if( base instanceof PropertyAST ){
             PropertyAST past = (PropertyAST)base;
             String propName = past.property();
@@ -270,11 +265,12 @@ public class Eval {
             Object obj = eval(past.base());
 
             List<Object> args = new ArrayList<>();
+            args.add(obj);
             for( AST arg : ast.args() ){
                 args.add( eval(arg) );
             }
 
-            return context.call(obj,propName,args);
+            return context.call(propName,args);
         }
         return null;
     }

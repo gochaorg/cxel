@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Абстрактный класс, который из предложенных функций {@link #lookup(Object, String, List)}
+ * Абстрактный класс, который из предложенных функций {@link #lookup( String, List)}
  * составляет возможные варианты вызовов, используя различные формы преобразования типов аргументов
- * см реализацию {@link #prepare(Object, String, List)}
+ * см реализацию {@link #prepare( String, List)}
  */
 public abstract class BasePreparingCalls implements PreparingCalls {
     /**
@@ -28,30 +28,25 @@ public abstract class BasePreparingCalls implements PreparingCalls {
 
     /**
      * Поиск методов/функций которые возможно пододут для вызова
-     * @param inst Объект
      * @param method метод
      * @param args арменты
      * @return Вызываемые методы
      */
-    protected abstract Eterable<TypedFn> lookup(Object inst, String method, List<Object> args);
+    protected abstract Eterable<TypedFn> lookup(String method, List<Object> args);
 
     @Override
-    public List<? extends PreparedCall> prepare(Object inst, String method, List<Object> args) {
-        Eterable<TypedFn> targetFunctions = lookup(inst, method, args);
-
-        if( targetFunctions==null || targetFunctions.count()<1 ){
-            throw new EvalError("method/function '"+method+"' not found");
-        }
+    public List<? extends PreparedCall> prepare(String method, List<Object> args) {
+        Eterable<TypedFn> targetFunctions = lookup(method, args);
 
         return targetFunctions
                 .map( m->{
             Call rcall = null;
             Type[] params = m.getParameterTypes();
             if( params.length==0 ){
-                rcall = new Call(inst,m);
+                rcall = new Call(m);
                 rcall.setInputArgs(args);
             }else{
-                rcall = new Call(inst,m);
+                rcall = new Call(m);
                 rcall.setInputArgs(args);
                 for( int pi=0; pi<params.length; pi++ ){
                     Class<?> p = (Class<?>) params[pi];
@@ -112,7 +107,7 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                         if( implicitCasts.size()==1 ) {
                                             // Найдено одно и единственное возможное имплицитное преобразование
                                             TypedFn implctCaster = implicitCasts.first().get();
-                                            Object castedValue = implctCaster.call(null, new Object[]{arg});
+                                            Object castedValue = implctCaster.call(new Object[]{arg});
                                             rcall.getArgs().add(ArgPass.implicit(pi, pt, castedValue));
                                         }else{
                                             if( implicitCasts.size()==0 ) {

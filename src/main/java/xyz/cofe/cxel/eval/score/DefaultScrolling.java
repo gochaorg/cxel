@@ -1,14 +1,21 @@
 package xyz.cofe.cxel.eval.score;
 
-import xyz.cofe.cxel.eval.CallScoring;
-import xyz.cofe.cxel.eval.PreparedCall;
+import xyz.cofe.cxel.eval.*;
 
 public class DefaultScrolling implements CallScoring<PreparedCall> {
     @Override
-    public int calculate( PreparedCall preparedCall ){
+    public int calculate(PreparedCall preparedCall, PreparingCalls scope ){
         if( preparedCall==null )throw new IllegalArgumentException( "preparedCall==null" );
+        int score = 0;
+
+        if( scope instanceof ContextPrepatingCalls ){
+        }
+
+        if( scope instanceof ReflectPreparingCalls ){
+            score += 1;
+        }
+
         if( preparedCall instanceof ParameterCount ){
-            int score = 0;
             int pcount = ((ParameterCount) preparedCall).parameterCount();
 
             if( preparedCall instanceof InvariantArgs ){
@@ -40,9 +47,8 @@ public class DefaultScrolling implements CallScoring<PreparedCall> {
                 int argsCasing = ((ArgsCasing) preparedCall).argsCasing();
                 score += argsCasing*Math.pow(pcount+1,5);
             }
-
-            return score;
         }
-        return 0;
+
+        return score;
     }
 }

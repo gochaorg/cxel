@@ -140,7 +140,7 @@ public class Eval1 {
     private Object callOperator( BinaryOpAST op ){
         Object vLeft = eval(op.left());
         Object vRight = eval(op.right());
-        return context.call(null,op.opText(), Arrays.asList(vLeft,vRight));
+        return context.call(op.opText(), Arrays.asList(vLeft,vRight));
     }
 
     protected Object plus( BinaryOpAST op ){
@@ -473,7 +473,7 @@ public class Eval1 {
                 args.add( eval(arg) );
             }
 
-            return context.call(null, ((VarRefAST) base).variable(), args );
+            return context.call( ((VarRefAST) base).variable(), args );
         }else if( base instanceof PropertyAST ){
             PropertyAST past = (PropertyAST)base;
             String propName = past.property();
@@ -481,11 +481,12 @@ public class Eval1 {
             Object obj = eval(past.base());
 
             List<Object> args = new ArrayList<>();
+            args.add(obj);
             for( AST arg : ast.args() ){
                 args.add( eval(arg) );
             }
 
-            return context.call(obj,propName,args);
+            return context.call(propName,args);
         }
         return null;
     }

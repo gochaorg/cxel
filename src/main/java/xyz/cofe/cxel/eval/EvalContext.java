@@ -246,6 +246,33 @@ public class EvalContext {
         return this;
     }
 
+    public <Z> EvalContext bindFn( String name, Class<Z> returnType, Supplier<Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( returnType==null )throw new IllegalArgumentException("returnType==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->st.add(TypedFn.of(returnType,fn)));
+        return this;
+    }
+
+    public <A0,Z> EvalContext bindFn( String name, Class<A0> targ0, Class<Z> returnType, Function<A0,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( targ0==null )throw new IllegalArgumentException("targ0==null");
+        if( returnType==null )throw new IllegalArgumentException("returnType==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->st.add(TypedFn.of(targ0,returnType,fn)));
+        return this;
+    }
+
+    public <A0,A1,Z> EvalContext bindFn( String name, Class<A0> targ0,  Class<A1> targ1, Class<Z> returnType, BiFunction<A0,A1,Z> fn ){
+        if( name==null )throw new IllegalArgumentException("name==null");
+        if( targ0==null )throw new IllegalArgumentException("targ0==null");
+        if( targ1==null )throw new IllegalArgumentException("targ1==null");
+        if( returnType==null )throw new IllegalArgumentException("returnType==null");
+        if( fn==null )throw new IllegalArgumentException("fn==null");
+        bindStatic(name, st->st.add(TypedFn.of(targ0,targ1,returnType,fn)));
+        return this;
+    }
+
     /**
      * Добавление глобальной функции
      * @param name имя функции
@@ -254,13 +281,13 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    public <Z> EvalContext bindStaticMethod(String name, Class<Z> resultType, Supplier<Z> fn){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( resultType==null )throw new IllegalArgumentException("resultType==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->st.add(TypedFn.of(resultType,fn)));
-        return this;
-    }
+//    public <Z> EvalContext bindStaticMethod(String name, Class<Z> resultType, Supplier<Z> fn){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( resultType==null )throw new IllegalArgumentException("resultType==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->st.add(TypedFn.of(resultType,fn)));
+//        return this;
+//    }
 
     /**
      * Добавление глобальной функции c одним аргументом
@@ -271,17 +298,17 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    public <A,Z> EvalContext bindStaticMethod(String name,
-                                              Class<A> arg0,
-                                              Class<Z> resultType,
-                                              Function<A,Z> fn){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( arg0==null )throw new IllegalArgumentException("arg0==null");
-        if( resultType==null )throw new IllegalArgumentException("resultType==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,resultType,(inst,a0)->fn.apply(a0))));
-        return this;
-    }
+//    public <A,Z> EvalContext bindStaticMethod(String name,
+//                                              Class<A> arg0,
+//                                              Class<Z> resultType,
+//                                              Function<A,Z> fn){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( arg0==null )throw new IllegalArgumentException("arg0==null");
+//        if( resultType==null )throw new IllegalArgumentException("resultType==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,resultType,(inst,a0)->fn.apply(a0))));
+//        return this;
+//    }
 
     /**
      * Добавление глобальной функции c двумя аргументами
@@ -293,20 +320,20 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,Z> EvalContext bindStaticMethod(String name,
-                                                Class<A> arg0,
-                                                Class<B> arg1,
-                                                Class<Z> resultType,
-                                                BiFunction<A,B,Z> fn){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( arg0==null )throw new IllegalArgumentException("arg0==null");
-        if( arg1==null )throw new IllegalArgumentException("arg1==null");
-        if( resultType==null )throw new IllegalArgumentException("resultType==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,arg1,resultType,(inst,a0,a1)->fn.apply(a0,a1))));
-        return this;
-    }
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,Z> EvalContext bindStaticMethod(String name,
+//                                                Class<A> arg0,
+//                                                Class<B> arg1,
+//                                                Class<Z> resultType,
+//                                                BiFunction<A,B,Z> fn){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( arg0==null )throw new IllegalArgumentException("arg0==null");
+//        if( arg1==null )throw new IllegalArgumentException("arg1==null");
+//        if( resultType==null )throw new IllegalArgumentException("resultType==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->st.add(TypedFn.method(Object.class,arg0,arg1,resultType,(inst,a0,a1)->fn.apply(a0,a1))));
+//        return this;
+//    }
 
     /**
      * Добавление глобальной функции
@@ -332,15 +359,15 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public <Z> EvalContext bindFn( String name, Class<Z> retType, Supplier<Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.of(retType,fn));
-        });
-        return this;
-    }
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <Z> EvalContext bindFn( String name, Class<Z> retType, Supplier<Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.of(retType,fn));
+//        });
+//        return this;
+//    }
 
     /**
      * Добавление глобальной функции c 1 аргументом
@@ -351,15 +378,15 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,Z> EvalContext bindFn(String name, Class<A> arg0, Class<Z> retType, Function<A,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(Object.class, arg0, retType, (inst,a0)->fn.apply(a0) ));
-        });
-        return this;
-    }
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,Z> EvalContext bindFn(String name, Class<A> arg0, Class<Z> retType, Function<A,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(Object.class, arg0, retType, (inst,a0)->fn.apply(a0) ));
+//        });
+//        return this;
+//    }
 
     /**
      * Добавление глобальной функции c 2 аргументами
@@ -371,19 +398,19 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,Z> EvalContext bindFn( String name, Class<A> arg0, Class<B> arg1, Class<Z> retType, BiFunction<A,B,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1,
-                retType,
-                (inst,a0,a1)->fn.apply(a0,a1) ));
-        });
-        return this;
-    }
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,Z> EvalContext bindFn( String name, Class<A> arg0, Class<B> arg1, Class<Z> retType, BiFunction<A,B,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1,
+//                retType,
+//                (inst,a0,a1)->fn.apply(a0,a1) ));
+//        });
+//        return this;
+//    }
 
     /**
      * Добавление глобальной функции c 3 аргументами
@@ -396,260 +423,272 @@ public class EvalContext {
      * @param <Z> возвращаемый тип
      * @return self ссылка
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2,
-                                         Class<Z> retType,
-                                         Fn3<A,B,C,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2,
-                retType,
-                (inst,a0,a1,a2)->fn.apply(a0,a1,a2) ));
-        });
-        return this;
-    }
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2,
+//                                         Class<Z> retType,
+//                                         Fn3<A,B,C,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2,
+//                retType,
+//                (inst,a0,a1,a2)->fn.apply(a0,a1,a2) ));
+//        });
+//        return this;
+//    }
 
-    /**
-     * Добавление глобальной функции c 4 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param retType возвращаемый тип
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3,
-                                         Class<Z> retType,
-                                         Fn4<A,B,C,D,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3,
-                retType,
-                (inst,a0,a1,a2,a3)->fn.apply(a0,a1,a2,a3) ));
-        });
-        return this;
-    }
+//    /**
+//     * Добавление глобальной функции c 4 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param retType возвращаемый тип
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3,
+//                                         Class<Z> retType,
+//                                         Fn4<A,B,C,D,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3,
+//                retType,
+//                (inst,a0,a1,a2,a3)->fn.apply(a0,a1,a2,a3) ));
+//        });
+//        return this;
+//    }
+//
+//    /**
+//     * Добавление глобальной функции c 5 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param arg4 тип 5-го армента
+//     * @param retType возвращаемый тип
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,E,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+//                                         Class<Z> retType,
+//                                         Fn5<A,B,C,D,E,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3, arg4,
+//                retType,
+//                (inst,a0,a1,a2,a3,a4)->fn.apply(a0,a1,a2,a3,a4) ));
+//        });
+//        return this;
+//    }
+//
+//    /**
+//     * Добавление глобальной функции c 6 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param arg4 тип 5-го армента
+//     * @param arg5 тип 6-го армента
+//     * @param retType возвращаемый тип
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,E,F,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+//                                         Class<F> arg5,
+//                                         Class<Z> retType,
+//                                         Fn6<A,B,C,D,E,F,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3, arg4, arg5,
+//                retType,
+//                (inst,a0,a1,a2,a3,a4,a5)->fn.apply(a0,a1,a2,a3,a4,a5) ));
+//        });
+//        return this;
+//    }
+//
+//    /**
+//     * Добавление глобальной функции c 7 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param arg4 тип 5-го армента
+//     * @param arg5 тип 6-го армента
+//     * @param arg6 тип 7-го армента
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,E,F,G,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+//                                         Class<F> arg5, Class<G> arg6,
+//                                         Class<Z> retType,
+//                                         Fn7<A,B,C,D,E,F,G,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3, arg4, arg5, arg6,
+//                retType,
+//                (inst,a0,a1,a2,a3,a4,a5,a6)->fn.apply(a0,a1,a2,a3,a4,a5,a6) ));
+//        });
+//        return this;
+//    }
+//
+//    /**
+//     * Добавление глобальной функции c 8 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param arg4 тип 5-го армента
+//     * @param arg5 тип 6-го армента
+//     * @param arg6 тип 7-го армента
+//     * @param arg7 тип 8-го армента
+//     * @param retType возвращаемый тип
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,E,F,G,H,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+//                                         Class<F> arg5, Class<G> arg6, Class<H> arg7,
+//                                         Class<Z> retType,
+//                                         Fn8<A,B,C,D,E,F,G,H,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7,
+//                retType,
+//                (inst,a0,a1,a2,a3,a4,a5,a6,a7)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7) ));
+//        });
+//        return this;
+//    }
+//
+//    /**
+//     * Добавление глобальной функции c 9 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param arg4 тип 5-го армента
+//     * @param arg5 тип 6-го армента
+//     * @param arg6 тип 7-го армента
+//     * @param arg7 тип 8-го армента
+//     * @param arg8 тип 9-го армента
+//     * @param retType возвращаемый тип
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,E,F,G,H,I,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+//                                         Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8,
+//                                         Class<Z> retType,
+//                                         Fn9<A,B,C,D,E,F,G,H,I,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,
+//                retType,
+//                (inst,a0,a1,a2,a3,a4,a5,a6,a7,a8)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7,a8) ));
+//        });
+//        return this;
+//    }
+//
+//    /**
+//     * Добавление глобальной функции c 10 аргументами
+//     * @param name имя функции
+//     * @param arg0 тип первого армента
+//     * @param arg1 тип второго армента
+//     * @param arg2 тип 3-го армента
+//     * @param arg3 тип 4-го армента
+//     * @param arg4 тип 5-го армента
+//     * @param arg5 тип 6-го армента
+//     * @param arg6 тип 7-го армента
+//     * @param arg7 тип 8-го армента
+//     * @param arg8 тип 9-го армента
+//     * @param arg9 тип 10-го армента
+//     * @param retType возвращаемый тип
+//     * @param fn функция
+//     * @param <Z> возвращаемый тип
+//     * @return self ссылка
+//     */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public <A,B,C,D,E,F,G,H,I,J,Z> EvalContext bindFn( String name,
+//                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
+//                                         Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8, Class<J> arg9,
+//                                         Class<Z> retType,
+//                                         Fn10<A,B,C,D,E,F,G,H,I,J,Z> fn ){
+//        if( name==null )throw new IllegalArgumentException("name==null");
+//        if( fn==null )throw new IllegalArgumentException("fn==null");
+//        bindStatic(name, st->{
+//            st.add(TypedFn.method(
+//                Object.class,
+//                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9,
+//                retType,
+//                (inst,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9) ));
+//        });
+//        return this;
+//    }
+    //endregion
 
-    /**
-     * Добавление глобальной функции c 5 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param arg4 тип 5-го армента
-     * @param retType возвращаемый тип
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,E,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
-                                         Class<Z> retType,
-                                         Fn5<A,B,C,D,E,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3, arg4,
-                retType,
-                (inst,a0,a1,a2,a3,a4)->fn.apply(a0,a1,a2,a3,a4) ));
-        });
-        return this;
-    }
-
-    /**
-     * Добавление глобальной функции c 6 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param arg4 тип 5-го армента
-     * @param arg5 тип 6-го армента
-     * @param retType возвращаемый тип
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,E,F,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
-                                         Class<F> arg5,
-                                         Class<Z> retType,
-                                         Fn6<A,B,C,D,E,F,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3, arg4, arg5,
-                retType,
-                (inst,a0,a1,a2,a3,a4,a5)->fn.apply(a0,a1,a2,a3,a4,a5) ));
-        });
-        return this;
-    }
-
-    /**
-     * Добавление глобальной функции c 7 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param arg4 тип 5-го армента
-     * @param arg5 тип 6-го армента
-     * @param arg6 тип 7-го армента
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,E,F,G,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
-                                         Class<F> arg5, Class<G> arg6,
-                                         Class<Z> retType,
-                                         Fn7<A,B,C,D,E,F,G,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3, arg4, arg5, arg6,
-                retType,
-                (inst,a0,a1,a2,a3,a4,a5,a6)->fn.apply(a0,a1,a2,a3,a4,a5,a6) ));
-        });
-        return this;
-    }
-
-    /**
-     * Добавление глобальной функции c 8 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param arg4 тип 5-го армента
-     * @param arg5 тип 6-го армента
-     * @param arg6 тип 7-го армента
-     * @param arg7 тип 8-го армента
-     * @param retType возвращаемый тип
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,E,F,G,H,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
-                                         Class<F> arg5, Class<G> arg6, Class<H> arg7,
-                                         Class<Z> retType,
-                                         Fn8<A,B,C,D,E,F,G,H,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7,
-                retType,
-                (inst,a0,a1,a2,a3,a4,a5,a6,a7)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7) ));
-        });
-        return this;
-    }
-
-    /**
-     * Добавление глобальной функции c 9 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param arg4 тип 5-го армента
-     * @param arg5 тип 6-го армента
-     * @param arg6 тип 7-го армента
-     * @param arg7 тип 8-го армента
-     * @param arg8 тип 9-го армента
-     * @param retType возвращаемый тип
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,E,F,G,H,I,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
-                                         Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8,
-                                         Class<Z> retType,
-                                         Fn9<A,B,C,D,E,F,G,H,I,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8,
-                retType,
-                (inst,a0,a1,a2,a3,a4,a5,a6,a7,a8)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7,a8) ));
-        });
-        return this;
-    }
-
-    /**
-     * Добавление глобальной функции c 10 аргументами
-     * @param name имя функции
-     * @param arg0 тип первого армента
-     * @param arg1 тип второго армента
-     * @param arg2 тип 3-го армента
-     * @param arg3 тип 4-го армента
-     * @param arg4 тип 5-го армента
-     * @param arg5 тип 6-го армента
-     * @param arg6 тип 7-го армента
-     * @param arg7 тип 8-го армента
-     * @param arg8 тип 9-го армента
-     * @param arg9 тип 10-го армента
-     * @param retType возвращаемый тип
-     * @param fn функция
-     * @param <Z> возвращаемый тип
-     * @return self ссылка
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public <A,B,C,D,E,F,G,H,I,J,Z> EvalContext bindFn( String name,
-                                         Class<A> arg0, Class<B> arg1, Class<C> arg2, Class<D> arg3, Class<E> arg4,
-                                         Class<F> arg5, Class<G> arg6, Class<H> arg7, Class<I> arg8, Class<J> arg9,
-                                         Class<Z> retType,
-                                         Fn10<A,B,C,D,E,F,G,H,I,J,Z> fn ){
-        if( name==null )throw new IllegalArgumentException("name==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        bindStatic(name, st->{
-            st.add(TypedFn.method(
-                Object.class,
-                arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9,
-                retType,
-                (inst,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9)->fn.apply(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9) ));
-        });
-        return this;
+    //region reflectPreparingCalls - вызов метода/функции
+    private volatile ReflectPreparingCalls reflectCalls;
+    private ReflectPreparingCalls reflectPreparingCalls(){
+        if( reflectCalls !=null )return reflectCalls;
+        synchronized (this){
+            if( reflectCalls !=null )return reflectCalls;
+            reflectCalls = new ReflectPreparingCalls(this);
+            return reflectCalls;
+        }
     }
     //endregion
 
-    //region preparingCalls - вызов метода/функции
-    private volatile PreparingCalls preparingCalls;
-    private PreparingCalls preparingCalls(){
-        if( preparingCalls!=null )return preparingCalls;
+    //region reflectPreparingCalls - вызов метода/функции
+    private volatile ContextPrepatingCalls contextPrepatingCalls;
+    private ContextPrepatingCalls contextPreparingCalls(){
+        if( contextPrepatingCalls !=null )return contextPrepatingCalls;
         synchronized (this){
-            if( preparingCalls!=null )return preparingCalls;
-            preparingCalls = new ReflectPreparingCalls(this);
-            return preparingCalls;
+            if( contextPrepatingCalls !=null )return contextPrepatingCalls;
+            contextPrepatingCalls = new ContextPrepatingCalls(this);
+            return contextPrepatingCalls;
         }
     }
     //endregion
@@ -657,19 +696,32 @@ public class EvalContext {
     //region Вызов метода
     /**
      * Вызов метода
-     * @param inst экземпляр объекта или null
      * @param method имя метода или имя оператора
      * @param args аргументы
      * @return результат вызова
      */
-    public Object call( Object inst, String method, List<Object> args ){
+    public Object call( String method, List<Object> args ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
 
-        List<? extends PreparedCall> rcalls = preparingCalls().prepare(inst,method,args);
+        PreparingCalls ctxPCalls = contextPreparingCalls();
+        PreparingCalls rflPCalls = reflectPreparingCalls();
 
-        if( rcalls.isEmpty() ){
+        Set<PreparingCalls> scopes = new LinkedHashSet<>();
+        scopes.add(ctxPCalls);
+        scopes.add(rflPCalls);
+
+        Map<PreparedCall,PreparingCalls> calls = new LinkedHashMap<>();
+        for( PreparingCalls prepare : scopes ){
+            List<? extends PreparedCall> pcalls = prepare.prepare(method,args);
+            for( PreparedCall pcall : pcalls ){
+                calls.put(pcall, prepare);
+            }
+        }
+        int summaryCalls = calls.size();
+
+        if( summaryCalls<1 ){
             throw new EvalError(
-                "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
+                "can't call "+method+
                 " callable method not found"+
                     ( args!=null && !args.isEmpty() ? ", for args[ "+(
                         args.stream().map( a-> (a==null ? "null" : a+" : "+a.getClass() )
@@ -677,13 +729,13 @@ public class EvalContext {
             );
         }
 
-        if( rcalls.size()>1 ){
+        if( summaryCalls>1 ){
             // Есть несколько вариантов вызова
             // Ведем подсчет очков
             CallScoring<? super PreparedCall> scoring = new DefaultScrolling();
 
-            List<Tuple2<? extends PreparedCall,Integer>> scoredRCalls = rcalls.stream().map( c -> {
-                return Tuple2.of(c,scoring.calculate(c));
+            List<Tuple2<? extends PreparedCall,Integer>> scoredRCalls = calls.keySet().stream().map( c -> {
+                return Tuple2.of(c,scoring.calculate(c, calls.get(c)));
             }).collect(Collectors.toList());
 
             // находим минимальное кол-во очков
@@ -705,9 +757,11 @@ public class EvalContext {
                     PreparedCall pcall = minScore.get(pi).a();
                     if( pcall instanceof Call ){
                         Call cl = (Call)pcall;
-                        sb.append("method=").append(cl.getMethod());
-                        sb.append("args(").append(cl.getArgs().size()).append("):\n");
+                        sb.append("scope=").append( calls.get(cl) );
+                        sb.append(" method=").append(cl.getMethod());
+                        sb.append(" args(").append(cl.getArgs().size()).append("):");
                         for( int ai=0;ai<cl.getArgs().size();ai++ ){
+                            sb.append("\n");
                             sb.append("arg[").append("]:");
                             ArgPass apss = cl.getArgs().get(ai);
                             sb.append(" idx=").append(apss.getIndex());
@@ -725,6 +779,7 @@ public class EvalContext {
                                 sb.append(" argValue=").append("null");
                             }
                         }
+                        sb.append("\n");
                     }else{
                         sb.append(pcall);
                     }
@@ -732,13 +787,13 @@ public class EvalContext {
                     sb.append("\n"+"................................."+"\n");
                 }
                 throw new EvalError(
-                    "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
+                    "can't call "+method+
                         " ambiguous methods calls found:\n"+sb
                 );
             }else if( minScore.size()<1 ){
                 // нету ни одного подходящего варианта
                 throw new EvalError(
-                    "can't call "+method+(inst!=null ? " of "+inst.getClass() : "")+
+                    "can't call "+method+
                         " callable method not found"+
                         ( args!=null && !args.isEmpty() ? ", for args[ "+(
                             args.stream().map( a-> (a==null ? "null" : a+" : "+a.getClass() )
@@ -750,7 +805,8 @@ public class EvalContext {
             return minScore.get(0).a().call();
         }
 
-        return rcalls.get(0).call();
+        PreparedCall pcall = calls.keySet().iterator().next();
+        return pcall.call();
     }
     //endregion
 
@@ -830,7 +886,7 @@ public class EvalContext {
         bindStaticMethods(BitOperations.class);
 
         //noinspection ConstantConditions
-        bindStaticMethod("+",
+        bindFn("+",
             CharSequence.class,CharSequence.class,
             String.class,
             (a,b)-> a==null && b==null ? "nullnull" :

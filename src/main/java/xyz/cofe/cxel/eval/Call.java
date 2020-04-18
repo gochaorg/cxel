@@ -18,12 +18,11 @@ public class Call
     public Call(){
     }
 
-    public Call(Object inst, TypedFn meth ){
-        this.instance = inst;
+    public Call(TypedFn meth){
         this.method = meth;
     }
 
-    public Call configure(Consumer<Call> conf ){
+    public Call configure(Consumer<Call> conf){
         if( conf != null ) conf.accept(this);
         return this;
     }
@@ -37,18 +36,6 @@ public class Call
     public void setInputArgs(List<Object> inputArgs) {
         this.inputArgs = inputArgs;
     }
-
-    //region instance : Object
-    protected Object instance;
-
-    public Object getInstance(){
-        return instance;
-    }
-
-    public void setInstance( Object instance ){
-        this.instance = instance;
-    }
-    //endregion
 
     //region method : Method
     protected TypedFn method;
@@ -118,9 +105,7 @@ public class Call
                 params[pa.getIndex()] = pa.getArg();
         });
 
-        Object inst = getInstance();
-
-        return method.call(inst, params);
+        return method.call(params);
     }
     //endregion
 

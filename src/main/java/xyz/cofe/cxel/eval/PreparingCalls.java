@@ -8,10 +8,9 @@ import java.util.List;
 public interface PreparingCalls {
     /**
      * Подготовка вызовов
-     * @param inst Вызываемый экземпляр или null
      * @param method имя метода
      * @param args аргументы
      * @return Вариант вызова
      */
-    List<? extends PreparedCall> prepare( Object inst, String method, List<Object> args );
+    List<? extends PreparedCall> prepare( String method, List<Object> args );
 }

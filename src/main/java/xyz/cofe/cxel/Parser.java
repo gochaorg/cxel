@@ -402,14 +402,17 @@ public class Parser {
         };
     }
 
-//    public static final GR<TPointer,? extends AST> literal
-//        = nullConst.another(
-//            number
-//        ).another(
-//            bool
-//        ).another(
-//            atomic(StringTok.class,StringAST::new)
-//        ).map( t->(AST)t );
+    /**
+     * Литеральные значения
+     */
+    public static final GR<TPointer,? extends AST> literal
+        = nullConst.<AST>another(
+                number
+            ).<TPointer,AST>another(
+                bool
+            ).<TPointer,AST>another(
+                atomic(StringTok.class,StringAST::new)
+            ).map( t->(AST)t );
 
     /**
      * Атомарное значение <br>
@@ -426,19 +429,10 @@ public class Parser {
         = bracketExpression
               .another(list(expression))
               .another(map(
-                  nullConst.<AST>another(
-                      number
-                  ).<TPointer,AST>another(
-                      bool
-                  ).<TPointer,AST>another(
-                      atomic(StringTok.class,StringAST::new)
-                  ).map( t->(AST)t ),
+                  literal,
                   expression
               ))
-              .another(number)
-              .another(bool)
-              .another(nullConst)
-              .another(atomic(StringTok.class,StringAST::new))
+              .another(literal)
               .another(varRef)
               .another(unaryExression)
               .map( t -> (AST)t );

@@ -127,18 +127,6 @@ public class ParserTest {
         System.out.println("eval result: "+evRes);
         assertTrue(evRes!=null);
         assertTrue(evRes.equals(-1));
-
-        System.out.println("...................");
-        psource = Parser.source("-1*(2-3)");
-        astRoot = Parser.expression.apply( psource );
-        Assertions.assertTrue(astRoot.isPresent());
-        ASTDump.build().dump( astRoot.get() );
-
-        ev = new Eval();
-        evRes = ev.eval(astRoot.get());
-        System.out.println("eval result: "+evRes);
-        assertTrue(evRes!=null);
-        assertTrue(evRes.equals(1));
     }
 
     @Test
