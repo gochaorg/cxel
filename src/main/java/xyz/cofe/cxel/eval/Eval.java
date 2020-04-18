@@ -204,6 +204,8 @@ public class Eval {
             return list( (ListAST)ast );
         }else if( ast instanceof MapAST ){
             return map( (MapAST)ast );
+        }else if( ast instanceof IfAST ){
+            return If( (IfAST)ast );
         }
         throw new EvalError("can't evaluate undefined ast: "+ast.getClass());
     }
@@ -316,7 +318,8 @@ public class Eval {
      * @param mast конструкция карты, см {@link xyz.cofe.cxel.Parser#map(GR, GR)}
      * @return карта
      */
-    protected Object map( MapAST mast ){
+    @SuppressWarnings("rawtypes")
+    protected Object map(MapAST mast){
         EvalContext.MapBuilder bld = context.map();
         for( MapEntryAST e : mast.entries() ){
             Object key = null;
@@ -339,6 +342,15 @@ public class Eval {
             bld.put(key,val);
         }
         return bld.build();
+    }
+
+    private Object If(IfAST ifAST){
+        boolean b = context.condition(eval(ifAST.condition()));
+        if( b ){
+            return eval(ifAST.success());
+        }else{
+            return eval(ifAST.failure());
+        }
     }
     //endregion
 }

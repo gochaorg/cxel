@@ -25,7 +25,7 @@ public abstract class OpAST<SELF extends OpAST<SELF>> extends ASTBase<SELF> {
      * Конструктор копирования
      * @param sample образец для копирования
      */
-    protected OpAST( OpAST<SELF> sample ){
+    protected OpAST( SELF sample ){
         super(sample);
         this.operator = sample.operator;
     }

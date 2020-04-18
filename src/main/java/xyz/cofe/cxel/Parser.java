@@ -176,7 +176,10 @@ public class Parser {
             Keyword.Minus,
             Keyword.Plus,
             Keyword.Not,
-            Keyword.Tilde
+            Keyword.Tilde,
+            Keyword.Delete,
+            Keyword.Void,
+            Keyword.TypeOf
         ).next(expression).map( (op,vl)->new UnaryOpAST(op.begin(),vl.end(),op,vl));
     //endregion
 
@@ -262,6 +265,12 @@ public class Parser {
         };
     }
 
+    /**
+     * Карта значений
+     * @param literal литеральное значение
+     * @param expr выражение
+     * @return парсер правила
+     */
     public static GR<TPointer, ? extends AST> map(
         GR<TPointer, ? extends AST> literal,
         GR<TPointer, ? extends AST> expr
@@ -593,6 +602,7 @@ public class Parser {
      * @param orderKeywords Имена операторов в последовательности уменьшения приоритета
      * @return Бинарные операторы
      */
+    @SafeVarargs
     public static GR<TPointer, ? extends AST> binaryOps(
         GR<TPointer, ? extends AST> start,
         GR<TPointer,KeywordAST> ... orderKeywords
@@ -623,19 +633,42 @@ public class Parser {
                 Keyword.LessOrEquals,
                 Keyword.More,
                 Keyword.MoreOrEquals,
+                Keyword.In,
+                Keyword.InstanceOf
+            )
+            , Keyword.parserOf(
                 Keyword.Equals,
                 Keyword.NotEquals,
                 Keyword.StrongEquals,
                 Keyword.StrongNotEquals
             )
+            , Keyword.BitAnd.parser()
+            , Keyword.BitXor.parser()
+            , Keyword.BitOr.parser()
             , Keyword.And.parser()
             , Keyword.Or.parser()
         );
+    //endregion
+
+    //region if - тернарный оператор
+    private static final GR<TPointer, ? extends AST> ifOpMatch
+        = binaryOps
+            .next(Keyword.Question.parser())
+            .next(binaryOps)
+            .next(Keyword.Colon.parser())
+            .next(binaryOps)
+            .map( (cond,k_qst,succ,k_cln,fail)->new IfAST(
+                cond.begin(), fail.end(), cond, succ, fail)
+            );
+
+    private static final GR<TPointer, ? extends AST> ifOp
+        = ifOpMatch.<AST>another(binaryOps).map();
+    //endregion
 
     //region Инициализация рекурсии expression
     static {
-        expression.setTarget(binaryOps);
-        //expression.setTarget(postfix());
+        // expression.setTarget(binaryOps);
+        expression.setTarget(ifOp);
     }
     //endregion
 

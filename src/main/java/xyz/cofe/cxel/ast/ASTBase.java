@@ -18,7 +18,7 @@ public abstract class ASTBase<SELF extends ASTBase<SELF>> implements AST {
      * Уонструктор копирования
      * @param sample образец для копирования
      */
-    protected ASTBase(ASTBase<SELF> sample){
+    protected ASTBase(SELF sample){
         if( sample!=null ){
             this.begin = sample.begin;
             this.end = sample.end;

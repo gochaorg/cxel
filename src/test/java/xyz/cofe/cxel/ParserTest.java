@@ -448,4 +448,10 @@ public class ParserTest {
         assertTrue(keys.stream().anyMatch("lst"::equals));
         assertTrue(keys.stream().anyMatch("map"::equals));
     }
+
+    @Test
+    public void ifOp(){
+        System.out.println("========= ifOp ==========");
+        parse("true ? 'abc' : 'def' ").run();
+    }
 }

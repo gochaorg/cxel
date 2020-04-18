@@ -972,4 +972,20 @@ public class EvalContext {
             }
         };
     }
+
+    public boolean condition( Object value ){
+        if( value==null )return false;
+        if( value instanceof Boolean ){
+            return (Boolean)value;
+        }
+        if( value instanceof Number ){
+            if( value instanceof Double )return ((Double)value)==0.0;
+            if( value instanceof Float )return ((Float)value)==0.0f;
+            return ((Number)value).doubleValue()==0.0;
+        }
+        if( value instanceof String ){
+            return ((String)value).length()>0;
+        }
+        return true;
+    }
 }
