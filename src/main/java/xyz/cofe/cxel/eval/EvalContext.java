@@ -669,6 +669,7 @@ public class EvalContext {
 //    }
     //endregion
 
+    //region Вызов метода
     //region reflectPreparingCalls - вызов метода/функции
     private volatile ReflectPreparingCalls reflectCalls;
     private ReflectPreparingCalls reflectPreparingCalls(){
@@ -680,8 +681,7 @@ public class EvalContext {
         }
     }
     //endregion
-
-    //region reflectPreparingCalls - вызов метода/функции
+    //region contextPrepatingCalls - вызов метода/функции
     private volatile ContextPrepatingCalls contextPrepatingCalls;
     private ContextPrepatingCalls contextPreparingCalls(){
         if( contextPrepatingCalls !=null )return contextPrepatingCalls;
@@ -693,7 +693,6 @@ public class EvalContext {
     }
     //endregion
 
-    //region Вызов метода
     /**
      * Вызов метода
      * @param method имя метода или имя оператора
@@ -938,4 +937,39 @@ public class EvalContext {
         return ast.value();
     }
     //endregion
+
+    /**
+     * Создание списка элементов
+     * @param items список элементов
+     * @return список
+     */
+    public List<Object> list( Object[] items ){
+        ArrayList<Object> lst = new ArrayList<>();
+        if( items!=null ){
+            lst.addAll(Arrays.asList(items));
+        }
+        return lst;
+    }
+
+    public interface MapBuilder {
+        MapBuilder put( Object key, Object val );
+        Map<Object,Object> build();
+    }
+
+    public MapBuilder map(){
+        return new MapBuilder() {
+            private Map<Object,Object> map = new LinkedHashMap<>();
+
+            @Override
+            public MapBuilder put(Object key, Object val) {
+                map.put(key,val);
+                return this;
+            }
+
+            @Override
+            public Map<Object, Object> build() {
+                return map;
+            }
+        };
+    }
 }

@@ -4,6 +4,7 @@ import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.ParseError;
 import xyz.cofe.cxel.Parser;
 import xyz.cofe.cxel.ast.*;
+import xyz.cofe.text.tparse.GR;
 import xyz.cofe.text.tparse.TPointer;
 
 import java.util.*;
@@ -199,6 +200,10 @@ public class Eval {
             return call( (CallAST) ast );
         }else if( ast instanceof IndexAST ){
             return index( (IndexAST) ast );
+        }else if( ast instanceof ListAST ){
+            return list( (ListAST)ast );
+        }else if( ast instanceof MapAST ){
+            return map( (MapAST)ast );
         }
         throw new EvalError("can't evaluate undefined ast: "+ast.getClass());
     }
@@ -284,6 +289,56 @@ public class Eval {
         Object obj = eval(ast.base());
         Object idx = eval(ast.index());
         return context.getAt(obj,idx);
+    }
+
+    /**
+     * Интерпретация создания списка
+     * @param listAst констукция списка, см {@link xyz.cofe.cxel.Parser#list(GR)}
+     * @return список
+     */
+    protected Object list( ListAST listAst ){
+        AST[] avalues = listAst.expressions();
+        Object[] values = null;
+        if( avalues!=null ){
+            values = new Object[avalues.length];
+            for( int ai=0; ai<avalues.length; ai++ ){
+                values[ai] = eval(avalues[ai]);
+            }
+            return context.list(values);
+        }else{
+            values = new Object[0];
+            return context.list(values);
+        }
+    }
+
+    /**
+     * Интерпретация создания карты
+     * @param mast конструкция карты, см {@link xyz.cofe.cxel.Parser#map(GR, GR)}
+     * @return карта
+     */
+    protected Object map( MapAST mast ){
+        EvalContext.MapBuilder bld = context.map();
+        for( MapEntryAST e : mast.entries() ){
+            Object key = null;
+            Object val = null;
+            if( e instanceof MapExprEntreyAST ){
+                MapExprEntreyAST me = (MapExprEntreyAST)e;
+                key = eval(me.key());
+                val = eval(me.value());
+            }else if( e instanceof MapLiteralEntreyAST ){
+                MapLiteralEntreyAST me = (MapLiteralEntreyAST)e;
+                key = me.key().value();
+                val = eval(me.value());
+            }else if( e instanceof MapPropEntreyAST ){
+                MapPropEntreyAST me = (MapPropEntreyAST)e;
+                key = me.key().variable();
+                val = eval(me.value());
+            }else{
+                throw new EvalError("can't evaluate map entry of "+e);
+            }
+            bld.put(key,val);
+        }
+        return bld.build();
     }
     //endregion
 }

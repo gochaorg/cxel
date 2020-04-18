@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+@SuppressWarnings({"SimplifiableJUnitAssertion", "unchecked"})
 public class ParserTest {
     public static class Parsing {
         protected String source;
@@ -393,7 +394,21 @@ public class ParserTest {
 
     @Test
     public void listExpr(){
+        System.out.println("======= listExpr() =======");
         parse("[ true, 'abc', 10, null ]").run();
+
+        System.out.println(".............................");
+
+        Object olst = parse("[ true, 'abc', 10, null ]").eval(true).run();
+        assertTrue(olst!=null);
+        assertTrue( olst instanceof List );
+
+        List<Object> lst = (List<Object>)olst;
+        assertTrue( lst.size()==4 );
+        assertTrue( lst.get(0) instanceof Boolean );
+        assertTrue( lst.get(1) instanceof String );
+        assertTrue( lst.get(2) instanceof Number );
+        assertTrue( lst.get(3)==null );
     }
 
     @Test
@@ -404,5 +419,33 @@ public class ParserTest {
         parse("{ true: true }").run();
         parse("{ (1+2): true }").run();
         parse("{ key1: true, key2: 'val2' }").run();
+
+        System.out.println(".............................");
+        System.out.println(".............................");
+
+        Object omap = parse(
+            "{ " +
+                "k1: true, " +
+                "k2: 10, " +
+                "10: 12, " +
+                "'key a': null," +
+                "(10+2): 23," +
+                "lst: [0, 1, 2]," +
+                "map: { a:1 } " +
+                "}"
+        ).eval(true).run();
+        assertTrue(omap!=null);
+        assertTrue(omap instanceof Map);
+
+        Map<Object,Object> map = (Map<Object, Object>)omap;
+        assertTrue(map.size()==7);
+
+        Set<Object> keys = map.keySet();
+        assertTrue(keys.stream().anyMatch("k1"::equals));
+        assertTrue(keys.stream().anyMatch("k2"::equals));
+        assertTrue(keys.stream().anyMatch(((Integer)10)::equals));
+        assertTrue(keys.stream().anyMatch(((Integer)12)::equals));
+        assertTrue(keys.stream().anyMatch("lst"::equals));
+        assertTrue(keys.stream().anyMatch("map"::equals));
     }
 }
