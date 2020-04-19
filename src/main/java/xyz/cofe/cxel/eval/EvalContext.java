@@ -938,6 +938,7 @@ public class EvalContext {
     }
     //endregion
 
+    //region list - создание списка
     /**
      * Создание списка элементов
      * @param items список элементов
@@ -950,14 +951,35 @@ public class EvalContext {
         }
         return lst;
     }
+    //endregion
 
+    //region map - создание карты
+    /**
+     * Создание карты
+     */
     public interface MapBuilder {
+        /**
+         * Добавление пары ключ/значение
+         * @param key ключ
+         * @param val значение
+         * @return SELF ссылка на MapBuilder
+         */
         MapBuilder put( Object key, Object val );
+
+        /**
+         * Получение итоговой карты
+         * @return карта
+         */
         Map<Object,Object> build();
     }
 
+    /**
+     * Создаение карты
+     * @return строитель карты
+     */
     public MapBuilder map(){
         return new MapBuilder() {
+            @SuppressWarnings("FieldMayBeFinal")
             private Map<Object,Object> map = new LinkedHashMap<>();
 
             @Override
@@ -972,7 +994,13 @@ public class EvalContext {
             }
         };
     }
+    //endregion
 
+    /**
+     * Проверка значения условия (if / ?)
+     * @param value значение в условии
+     * @return реузльтат проверки
+     */
     public boolean condition( Object value ){
         if( value==null )return false;
         if( value instanceof Boolean ){

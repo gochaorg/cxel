@@ -339,7 +339,7 @@ public class Eval {
             }else{
                 throw new EvalError("can't evaluate map entry of "+e);
             }
-            bld.put(key,val);
+            bld = bld.put(key,val);
         }
         return bld.build();
     }

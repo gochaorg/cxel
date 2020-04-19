@@ -455,4 +455,21 @@ public class ParserTest {
         parse("true ? 'abc' : 'def' ").eval().run();
         parse("2 > 0.15 ? 'abc' : 'def' ").eval().run();
     }
+
+    @Test
+    public void extMeth01(){
+        System.out.println("========= extMeth01 ==========");
+
+        parse("'abc'.repeat( 3 )").context( c -> {
+            c.bindFn("repeat", String.class, Integer.class, String.class, (str,cnt)->{
+                StringBuilder sb = new StringBuilder();
+                if( cnt!=null ){
+                    for( int i=0;i<cnt;i++ ){
+                        sb.append(str);
+                    }
+                }
+                return sb.toString();
+            });
+        }).eval().run();
+    }
 }
