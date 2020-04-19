@@ -14,7 +14,6 @@ import java.util.function.BiFunction;
  */
 public class Parser {
     //region atmoic( tokenClass, map2AST ) : GR
-
     /**
      * Создает правило сопоставления для единичной лексемы вывод AST узла
      * @param target тип лексемы
@@ -680,7 +679,7 @@ public class Parser {
      */
     public static TPointer source( String source ){
         if( source==null )throw new IllegalArgumentException( "source==null" );
-        return new TPointer( Lexer.tokens(source) );
+        return new TPointer( new Lexer().tokens(source) );
     }
 
     /**
@@ -691,7 +690,7 @@ public class Parser {
      */
     public static TPointer source( String source, int from ){
         if( source==null )throw new IllegalArgumentException( "source==null" );
-        return new TPointer( Lexer.tokens(source, from) );
+        return new TPointer( new Lexer().tokens(source, from) );
     }
     //endregion
 }

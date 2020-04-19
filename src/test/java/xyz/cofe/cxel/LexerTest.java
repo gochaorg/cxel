@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 public class LexerTest {
     @Test
     public void test01(){
-        Lexer.tokens("1 + 2 - 3 * 4 / ( 5 + 6 ) ").forEach( System.out::println );
+        new Lexer().tokens("1 + 2 - 3 * 4 / ( 5 + 6 ) ").forEach( System.out::println );
     }
 
     @Test
     public void testId(){
-        List<? extends CToken> toks = Lexer.tokens("1 a abc a12 a.b");
+        List<? extends CToken> toks = new Lexer().tokens("1 a abc a12 a.b");
         toks.forEach(System.out::println);
     }
 
@@ -41,7 +41,7 @@ public class LexerTest {
 
     @Test
     public void hexBinOctInt(){
-        List<? extends CToken> toks = Lexer.tokens("1 0x0A 0xbc 0b1011 377 0377 3777 03777");
+        List<? extends CToken> toks = new Lexer().tokens("1 0x0A 0xbc 0b1011 377 0377 3777 03777");
 
         toks.forEach( t -> {
             if( t instanceof IntegerNumberTok ){
@@ -69,7 +69,7 @@ public class LexerTest {
 
     @Test
     public void numSuffixes(){
-        List<? extends CToken> toks = Lexer.tokens("1 2b 3s 4i 5l 6n 7w 8.0f 9.1d 10.0w 11.0n");
+        List<? extends CToken> toks = new Lexer().tokens("1 2b 3s 4i 5l 6n 7w 8.0f 9.1d 10.0w 11.0n");
 
         toks.forEach( t -> {
             if( t instanceof NumberTok ){
@@ -97,7 +97,7 @@ public class LexerTest {
 
     @Test
     public void floatNums(){
-        List<? extends CToken> toks = Lexer.tokens(
+        List<? extends CToken> toks = new Lexer().tokens(
             "1.2 .34 .45f .46d .56w .67n 12. 13.f 14.d 15.w 16.n "+
                 "17f 18d 19wf 20wd"
         );

@@ -355,7 +355,7 @@ public class ParserTest {
         String src = "a[10] \u2022 888";
         System.out.println("source: "+src);
 
-        Tokenizer<CharPointer, ? extends CToken> ptr = Lexer.tokenizer(src);
+        Tokenizer<CharPointer, ? extends CToken> ptr = new Lexer().tokenizer(src);
         List<CToken> tokens = new ArrayList<>();
         for( CToken tok : ptr ){
             tokens.add(tok);
@@ -376,7 +376,7 @@ public class ParserTest {
         String src = "a[10] 888";
         System.out.println("source: "+src);
 
-        Tokenizer<CharPointer, ? extends CToken> ptr = Lexer.tokenizer(src);
+        Tokenizer<CharPointer, ? extends CToken> ptr = new Lexer().tokenizer(src);
         List<CToken> tokens = new ArrayList<>();
         for( CToken tok : ptr ){
             tokens.add(tok);
