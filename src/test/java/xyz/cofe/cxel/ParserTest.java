@@ -452,6 +452,7 @@ public class ParserTest {
     @Test
     public void ifOp(){
         System.out.println("========= ifOp ==========");
-        parse("true ? 'abc' : 'def' ").run();
+        parse("true ? 'abc' : 'def' ").eval().run();
+        parse("2 > 0.15 ? 'abc' : 'def' ").eval().run();
     }
 }
