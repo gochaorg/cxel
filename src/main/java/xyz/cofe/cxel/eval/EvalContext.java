@@ -757,7 +757,7 @@ public class EvalContext {
                     if( pcall instanceof Call ){
                         Call cl = (Call)pcall;
                         sb.append("scope=").append( calls.get(cl) );
-                        sb.append(" method=").append(cl.getMethod());
+                        sb.append(" method=").append(cl.getFn());
                         sb.append(" args(").append(cl.getArgs().size()).append("):");
                         for( int ai=0;ai<cl.getArgs().size();ai++ ){
                             sb.append("\n");

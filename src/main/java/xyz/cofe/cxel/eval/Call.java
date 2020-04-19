@@ -19,7 +19,7 @@ public class Call
     }
 
     public Call(TypedFn meth){
-        this.method = meth;
+        this.fn = meth;
     }
 
     public Call configure(Consumer<Call> conf){
@@ -37,15 +37,15 @@ public class Call
         this.inputArgs = inputArgs;
     }
 
-    //region method : Method
-    protected TypedFn method;
+    //region method : TypedFn
+    protected TypedFn fn;
 
-    public TypedFn getMethod(){
-        return method;
+    public TypedFn getFn(){
+        return fn;
     }
 
-    public void setMethod( TypedFn method ){
-        this.method = method;
+    public void setFn(TypedFn fn){
+        this.fn = fn;
     }
     //endregion
 
@@ -70,7 +70,7 @@ public class Call
         List<ArgPass> args = getArgs();
         if( args == null ) return false;
 
-        TypedFn method = getMethod();
+        TypedFn method = getFn();
         if( method == null ) return false;
 
 //        Object inst = getInstance();
@@ -97,21 +97,21 @@ public class Call
     public Object call(){
         if( !callable() ) throw new EvalError("can't calling");
 
-        TypedFn method = getMethod();
-        Object[] params = new Object[method.getParameterTypes().length];
+        TypedFn f = getFn();
+        Object[] params = new Object[f.getParameterTypes().length];
 
         getArgs().stream().filter(Objects::nonNull).forEach(pa -> {
             if( pa.getIndex() >= 0 && pa.getIndex() < params.length )
                 params[pa.getIndex()] = pa.getArg();
         });
 
-        return method.call(params);
+        return f.call(params);
     }
     //endregion
 
     @Override
     public int argsCasing(){
-        TypedFn method = getMethod();
+        TypedFn method = getFn();
         List<Object> inptArgs = getInputArgs();
         if( method!=null && inptArgs!=null ){
             return Math.abs(method.getParameterTypes().length - inptArgs.size());
@@ -147,7 +147,7 @@ public class Call
 
     @Override
     public int parameterCount(){
-        TypedFn method = getMethod();
+        TypedFn method = getFn();
         if( method!=null ){
             return method.getParameterTypes().length;
         }
@@ -166,7 +166,7 @@ public class Call
         sb.append(" covariantArgs=").append(covariantArgs());
         sb.append(" implicitArgs=").append(implicitArgs());
 
-        TypedFn tf = method;
+        TypedFn tf = fn;
         if( tf!=null ){
             if( tf instanceof ReflectTypedFn ){
                 sb.append(" reflect method=").append(((ReflectTypedFn) tf).getMethod());
