@@ -20,9 +20,35 @@ public class EvalContextTest {
         return a + b;
     }
 
+    private static EvalContext createCtx(){
+        EvalContext cx = new EvalContext();
+        cx.bindStaticMethods(EqualsOprations.class);
+        cx.bindStaticMethods(BoolOperations.class);
+        cx.bindStaticMethods(ByteOperators.class);
+        cx.bindStaticMethods(ShortOperators.class);
+        cx.bindStaticMethods(IntegerOperators.class);
+        cx.bindStaticMethods(LongOperators.class);
+        cx.bindStaticMethods(FloatOperators.class);
+        cx.bindStaticMethods(DoubleOperators.class);
+        cx.bindStaticMethods(UnaryOperations.class);
+
+        cx.bindStaticMethods(BitOperations.class);
+
+        //noinspection ConstantConditions
+        cx.bindFn("+",
+            CharSequence.class,CharSequence.class,
+            String.class,
+            (a,b)-> a==null && b==null ? "nullnull" :
+                a!=null && b==null ? a+"null" :
+                    a==null && b!=null ? "null"+b :
+                        a.toString()+b.toString()
+        );
+        return cx;
+    }
+
     @Test
     public void stat01(){
-        EvalContext ctx = new EvalContext();
+        EvalContext ctx = createCtx();
         try{
             Method m = EvalContextTest.class.getMethod("sum", int.class, int.class);
             ctx.bindStaticMethod(m);
@@ -39,7 +65,7 @@ public class EvalContextTest {
 
     @Test
     public void stat02(){
-        EvalContext ctx = new EvalContext();
+        EvalContext ctx = createCtx();
         try{
             ctx.bindStaticMethod(
                 EvalContextTest.class.getMethod("sum", int.class, int.class)
@@ -67,7 +93,7 @@ public class EvalContextTest {
 
     @Test
     public void stat03(){
-        EvalContext ctx = new EvalContext();
+        EvalContext ctx = createCtx();
         try{
             ctx.bindStaticMethod( "+",
                 EvalContextTest.class.getMethod("sum", int.class, int.class)

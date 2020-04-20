@@ -149,7 +149,7 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         return bigInt;
     }
     //endregion
-
+    //region precision - точность чисел (разраядность)
     /**
      * Указывает точность чисел
      */
@@ -173,6 +173,35 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
         });
     }
 
+    /**
+     * Клонирует и явно (precisionPredefined = false) указывает точность числа
+     * @param newPrecision точность числа
+     * @return клон
+     */
+    public IntegerNumberTok defprecision( IntegerPrecision newPrecision ){
+        if( precision!=null )throw new IllegalArgumentException("precision!=null");
+        return cloneAndConf( c->{c.precisionPredefined = false; c.precision=newPrecision;} );
+    }
+    //endregion
+    /**
+     * Точность (разрядность) чисел предопределена
+     */
+    protected boolean precisionPredefined = true;
+
+    /**
+     * Возвращает точность (разрядность) чисел предопределена
+     * @return true - предопределена, false - задана явно
+     */
+    public boolean precisionPredefined(){ return precisionPredefined; }
+
+    /**
+     * Клонирует и указывает точность (разрядность) чисел предопределена
+     * @param predef true - точность чисел предопределена, false - задана явно
+     * @return клон
+     */
+    public IntegerNumberTok precisionPredefined( boolean predef ){
+        return cloneAndConf( c->c.precisionPredefined = predef );
+    }
     @SuppressWarnings("DuplicateBranchesInSwitch")
     @Override
     public Number value(){

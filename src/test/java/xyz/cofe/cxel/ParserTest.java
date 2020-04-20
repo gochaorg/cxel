@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.ast.AST;
 import xyz.cofe.cxel.eval.Eval;
 import xyz.cofe.cxel.eval.EvalContext;
+import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.fn.Pair;
 import xyz.cofe.iter.Eterable;
 import xyz.cofe.text.tparse.CToken;
@@ -72,6 +73,29 @@ public class ParserTest {
 
             if( eval ){
                 Eval ev = new Eval();
+                EvalContext cx = ev.context();
+                cx.bindStaticMethods(EqualsOprations.class);
+                cx.bindStaticMethods(BoolOperations.class);
+                cx.bindStaticMethods(ByteOperators.class);
+                cx.bindStaticMethods(ShortOperators.class);
+                cx.bindStaticMethods(IntegerOperators.class);
+                cx.bindStaticMethods(LongOperators.class);
+                cx.bindStaticMethods(FloatOperators.class);
+                cx.bindStaticMethods(DoubleOperators.class);
+                cx.bindStaticMethods(UnaryOperations.class);
+
+                cx.bindStaticMethods(BitOperations.class);
+
+                //noinspection ConstantConditions
+                cx.bindFn("+",
+                    CharSequence.class,CharSequence.class,
+                    String.class,
+                    (a,b)-> a==null && b==null ? "nullnull" :
+                        a!=null && b==null ? a+"null" :
+                            a==null && b!=null ? "null"+b :
+                                a.toString()+b.toString()
+                );
+
                 if( contextConfigure!=null ){
                     contextConfigure.accept(ev.context());
                 }
@@ -101,6 +125,30 @@ public class ParserTest {
         parse(source).eval(eval).expected(checkExpected,expected).run();
     }
 
+    private static void createCtx(EvalContext cx){
+        cx.bindStaticMethods(EqualsOprations.class);
+        cx.bindStaticMethods(BoolOperations.class);
+        cx.bindStaticMethods(ByteOperators.class);
+        cx.bindStaticMethods(ShortOperators.class);
+        cx.bindStaticMethods(IntegerOperators.class);
+        cx.bindStaticMethods(LongOperators.class);
+        cx.bindStaticMethods(FloatOperators.class);
+        cx.bindStaticMethods(DoubleOperators.class);
+        cx.bindStaticMethods(UnaryOperations.class);
+
+        cx.bindStaticMethods(BitOperations.class);
+
+        //noinspection ConstantConditions
+        cx.bindFn("+",
+            CharSequence.class,CharSequence.class,
+            String.class,
+            (a,b)-> a==null && b==null ? "nullnull" :
+                a!=null && b==null ? a+"null" :
+                    a==null && b!=null ? "null"+b :
+                        a.toString()+b.toString()
+        );
+    }
+
     @Test
     public void test01(){
         tryParse("1 + 2 + 3",true, true, 6);
@@ -124,6 +172,8 @@ public class ParserTest {
         ASTDump.build().dump( astRoot.get() );
 
         Eval ev = new Eval();
+        createCtx(ev.context());
+
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);
         assertTrue(evRes!=null);
@@ -139,6 +189,8 @@ public class ParserTest {
         ASTDump.build().dump( astRoot.get() );
 
         Eval ev = new Eval();
+        createCtx(ev.context());
+
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);
         assertTrue(evRes!=null);
@@ -162,6 +214,8 @@ public class ParserTest {
         ASTDump.build().dump( astRoot.get() );
 
         Eval ev = new Eval();
+        createCtx(ev.context());
+
         Object evRes = ev.eval(astRoot.get());
         System.out.println("eval result: "+evRes);
     }
@@ -207,6 +261,8 @@ public class ParserTest {
             ASTDump.build().dump( astRoot.get() );
 
             Eval ev = new Eval();
+            createCtx(ev.context());
+
             Object evRes = ev.eval(astRoot.get());
             System.out.println("--- eval result ---");
             System.out.println(evRes);
@@ -232,6 +288,8 @@ public class ParserTest {
         ASTDump.build().dump( astRoot.get() );
 
         Eval ev = new Eval();
+        createCtx(ev.context());
+        
         ev.context().bind("a", 10 );
         ev.context().bind("b", 12 );
 
@@ -256,6 +314,7 @@ public class ParserTest {
         ASTDump.build().dump( astRoot.get() );
 
         Eval ev = new Eval();
+        createCtx(ev.context());
 
         LinkedHashMap<String,Object> m = new LinkedHashMap<>();
         m.put("a",23);
@@ -283,6 +342,7 @@ public class ParserTest {
         ASTDump.build().dump( astRoot.get() );
 
         Eval ev = new Eval();
+        createCtx(ev.context());
 
         LinkedHashMap<String,Object> l = new LinkedHashMap<>();
         l.put("c",13);

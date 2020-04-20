@@ -869,33 +869,6 @@ public class EvalContext {
         throw new EvalError("can't get element with idx="+idx+" for obj of type "+base.getClass());
     }
 
-    //region Добавление стандартных операторов
-    {
-        // Добавление стандартных операторов
-        bindStaticMethods(EqualsOprations.class);
-        bindStaticMethods(BoolOperations.class);
-        bindStaticMethods(ByteOperators.class);
-        bindStaticMethods(ShortOperators.class);
-        bindStaticMethods(IntegerOperators.class);
-        bindStaticMethods(LongOperators.class);
-        bindStaticMethods(FloatOperators.class);
-        bindStaticMethods(DoubleOperators.class);
-        bindStaticMethods(UnaryOperations.class);
-
-        bindStaticMethods(BitOperations.class);
-
-        //noinspection ConstantConditions
-        bindFn("+",
-            CharSequence.class,CharSequence.class,
-            String.class,
-            (a,b)-> a==null && b==null ? "nullnull" :
-                    a!=null && b==null ? a+"null" :
-                    a==null && b!=null ? "null"+b :
-                    a.toString()+b.toString()
-        );
-    }
-    //endregion
-
     //region Интерпретация литералов
     /**
      * Интерпретация числа
@@ -952,7 +925,6 @@ public class EvalContext {
         return lst;
     }
     //endregion
-
     //region map - создание карты
     /**
      * Создание карты
@@ -995,7 +967,7 @@ public class EvalContext {
         };
     }
     //endregion
-
+    //region condition():boolean - проверка значений в условиях (if /?)
     /**
      * Проверка значения условия (if / ?)
      * @param value значение в условии
@@ -1016,4 +988,5 @@ public class EvalContext {
         }
         return true;
     }
+    //endregion
 }

@@ -4,6 +4,7 @@ import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.ParseError;
 import xyz.cofe.cxel.Parser;
 import xyz.cofe.cxel.ast.*;
+import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.text.tparse.GR;
 import xyz.cofe.text.tparse.TPointer;
 
@@ -126,6 +127,31 @@ public class Eval {
 
         public EvalContext context(){
             Eval eval = createEval();
+
+            // Добавление стандартных операторов
+            EvalContext cx = eval.context();
+            cx.bindStaticMethods(EqualsOprations.class);
+            cx.bindStaticMethods(BoolOperations.class);
+            cx.bindStaticMethods(ByteOperators.class);
+            cx.bindStaticMethods(ShortOperators.class);
+            cx.bindStaticMethods(IntegerOperators.class);
+            cx.bindStaticMethods(LongOperators.class);
+            cx.bindStaticMethods(FloatOperators.class);
+            cx.bindStaticMethods(DoubleOperators.class);
+            cx.bindStaticMethods(UnaryOperations.class);
+
+            cx.bindStaticMethods(BitOperations.class);
+
+            //noinspection ConstantConditions
+            cx.bindFn("+",
+                CharSequence.class,CharSequence.class,
+                String.class,
+                (a,b)-> a==null && b==null ? "nullnull" :
+                    a!=null && b==null ? a+"null" :
+                        a==null && b!=null ? "null"+b :
+                            a.toString()+b.toString()
+            );
+
             if( contextConfigure!=null ){
                 contextConfigure.accept(eval.context());
             }

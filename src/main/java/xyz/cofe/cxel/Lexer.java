@@ -9,7 +9,9 @@ import xyz.cofe.text.tparse.Tokenizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static xyz.cofe.text.tparse.Chars.*;
 
@@ -85,31 +87,31 @@ public class Lexer {
                 switch (suff.get()){
                     case 'l': case 'L': {
                         IntegerNumberTok ntok = tNum.get();
-                        ntok = ntok.precision(IntegerPrecision.LONG).location(ntok.begin(),ntok.end().move(1));
+                        ntok = ntok.defprecision(IntegerPrecision.LONG).location(ntok.begin(),ntok.end().move(1));
                         tNum = Optional.of(ntok);
                     }
                     break;
                     case 'i': case 'I': {
                         IntegerNumberTok ntok = tNum.get();
-                        ntok = ntok.precision(IntegerPrecision.INTEGER).location(ntok.begin(),ntok.end().move(1));
+                        ntok = ntok.defprecision(IntegerPrecision.INTEGER).location(ntok.begin(),ntok.end().move(1));
                         tNum = Optional.of(ntok);
                     }
                     break;
                     case 's': case 'S': {
                         IntegerNumberTok ntok = tNum.get();
-                        ntok = ntok.precision(IntegerPrecision.SHORT).location(ntok.begin(),ntok.end().move(1));
+                        ntok = ntok.defprecision(IntegerPrecision.SHORT).location(ntok.begin(),ntok.end().move(1));
                         tNum = Optional.of(ntok);
                     }
                     break;
                     case 'b': case 'B': {
                         IntegerNumberTok ntok = tNum.get();
-                        ntok = ntok.precision(IntegerPrecision.BYTE).location(ntok.begin(),ntok.end().move(1));
+                        ntok = ntok.defprecision(IntegerPrecision.BYTE).location(ntok.begin(),ntok.end().move(1));
                         tNum = Optional.of(ntok);
                     }
                     break;
                     case 'n': case 'N': case 'w': case 'W': {
                         IntegerNumberTok ntok = tNum.get();
-                        ntok = ntok.precision(IntegerPrecision.BIGINT).location(ntok.begin(),ntok.end().move(1));
+                        ntok = ntok.defprecision(IntegerPrecision.BIGINT).location(ntok.begin(),ntok.end().move(1));
                         tNum = Optional.of(ntok);
                     }
                     break;
@@ -285,19 +287,7 @@ public class Lexer {
      */
     public List<? extends CToken> tokens( String source ){
         if( source==null )throw new IllegalArgumentException( "source==null" );
-
-        Tokenizer<CharPointer, ? extends CToken> tknz = tokenizer(source);
-        List<? extends CToken> toks = tknz.toList();
-
-        if( source.length()>0 ){
-            if( toks.isEmpty() )throw new ParseError("lexer return 0 tokens for non empty source");
-            CToken lastTok = toks.get(toks.size()-1);
-            if( lastTok.end().position() < source.length() ){
-                throw new ParseError("lexer not parse all source");
-            }
-        }
-
-        return toks.stream().filter( t-> !(t instanceof WhiteSpaceTok) ).collect(Collectors.toList());
+        return tokens(source, 0);
     }
 
     /**
@@ -307,6 +297,19 @@ public class Lexer {
      * @return список лексем без пробелов
      */
     public List<? extends CToken> tokens( String source, int from ){
+        if( source==null )throw new IllegalArgumentException( "source==null" );
+        if( from<0 )throw new IllegalArgumentException( "from<0" );
+
+        return tokens(source, from, t-> !(t instanceof WhiteSpaceTok) );
+    }
+
+    /**
+     * Парсинг текста и получение набора лексем
+     * @param source исходный текст
+     * @param from с какого символа (0 и больше) начинать парсинг
+     * @return список лексем без пробелов
+     */
+    public List<? extends CToken> tokens(String source, int from, Predicate<CToken> filter){
         if( source==null )throw new IllegalArgumentException( "source==null" );
         if( from<0 )throw new IllegalArgumentException( "from<0" );
 
@@ -321,6 +324,10 @@ public class Lexer {
             }
         }
 
-        return toks.stream().filter( t-> !(t instanceof WhiteSpaceTok) ).collect(Collectors.toList());
+        Stream<? extends CToken> strm = toks.stream();
+        if( filter!=null ){
+            strm = strm.filter(filter);
+        }
+        return strm.collect(Collectors.toList());
     }
 }
