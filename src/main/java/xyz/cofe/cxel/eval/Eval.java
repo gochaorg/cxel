@@ -94,7 +94,7 @@ public class Eval {
         public AST parse(TPointer ptr){
             if( ptr==null )throw new IllegalArgumentException("ptr==null");
 
-            Optional<AST> astRoot = Parser.expression.apply( ptr );
+            Optional<AST> astRoot = new Parser().expression().apply( ptr );
             if( astRoot==null || !astRoot.isPresent() ){
                 throw new ParseError("can't parse source, offset="+from+" source:\n"+source);
             }

@@ -62,7 +62,7 @@ public class ParserTest {
             psource.tokens().forEach(System.out::println);
 
             Optional<? extends AST> astRoot
-                = Parser.expression.apply( psource );
+                = new Parser().expression().apply( psource );
 
             Assertions.assertTrue(astRoot!=null);
             Assertions.assertTrue(astRoot.isPresent());
@@ -115,7 +115,7 @@ public class ParserTest {
         psource.tokens().forEach(System.out::println);
 
         Optional<? extends AST> astRoot
-            = Parser.expression.apply( psource );
+            = new Parser().expression().apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
@@ -134,7 +134,7 @@ public class ParserTest {
     public void test02_2(){
         System.out.println("...................");
         TPointer psource = Parser.source("-1*(2-3)");
-        Optional<AST> astRoot = Parser.expression.apply( psource );
+        Optional<AST> astRoot = new Parser().expression().apply( psource );
         Assertions.assertTrue(astRoot.isPresent());
         ASTDump.build().dump( astRoot.get() );
 
@@ -153,7 +153,7 @@ public class ParserTest {
         psource.tokens().forEach(System.out::println);
 
         Optional<? extends AST> astRoot
-            = Parser.expression.apply( psource );
+            = new Parser().expression().apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
@@ -198,7 +198,7 @@ public class ParserTest {
             psource.tokens().forEach(System.out::println);
 
             Optional<? extends AST> astRoot
-                = Parser.expression.apply( psource );
+                = new Parser().expression().apply( psource );
 
             Assertions.assertTrue(astRoot!=null);
             Assertions.assertTrue(astRoot.isPresent());
@@ -223,7 +223,7 @@ public class ParserTest {
         psource.tokens().forEach(System.out::println);
 
         Optional<? extends AST> astRoot
-            = Parser.expression.apply( psource );
+            = new Parser().expression().apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
@@ -247,7 +247,7 @@ public class ParserTest {
         psource.tokens().forEach(System.out::println);
 
         Optional<? extends AST> astRoot
-            = Parser.expression.apply( psource );
+            = new Parser().expression().apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
@@ -274,7 +274,7 @@ public class ParserTest {
         psource.tokens().forEach(System.out::println);
 
         Optional<? extends AST> astRoot
-            = Parser.expression.apply( psource );
+            = new Parser().expression().apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
@@ -305,7 +305,7 @@ public class ParserTest {
         psource.tokens().forEach(System.out::println);
 
         Optional<? extends AST> astRoot
-            = Parser.expression.apply( psource );
+            = new Parser().expression().apply( psource );
 
         Assertions.assertTrue(astRoot!=null);
         Assertions.assertTrue(astRoot.isPresent());
