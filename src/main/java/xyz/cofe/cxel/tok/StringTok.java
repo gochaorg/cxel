@@ -125,7 +125,7 @@ public class StringTok extends CToken {
                     sb.append("'");
                     idx++;
                 }else if( c1=='\\' ){
-                    sb.append("\\'");
+                    sb.append("\\");
                     idx++;
                 }else if( c1=='n' ){
                     sb.append("\n");

@@ -289,7 +289,7 @@ public class ParserTest {
 
         Eval ev = new Eval();
         createCtx(ev.context());
-        
+
         ev.context().bind("a", 10 );
         ev.context().bind("b", 12 );
 

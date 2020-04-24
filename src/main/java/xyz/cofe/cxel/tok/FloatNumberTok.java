@@ -264,6 +264,34 @@ public class FloatNumberTok extends NumberTok<FloatNumberTok> {
         });
     }
     //endregion
+    /**
+     * Клонирует и явно (precisionPredefined = false) указывает точность числа
+     * @param newPrecision точность числа
+     * @return клон
+     */
+    public FloatNumberTok defprecision( FloatPrecision newPrecision ){
+        if( precision!=null )throw new IllegalArgumentException("precision!=null");
+        return cloneAndConf( c->{c.precisionPredefined = false; c.precision=newPrecision;} );
+    }
+    /**
+     * Точность (разрядность) чисел предопределена
+     */
+    protected boolean precisionPredefined = true;
+
+    /**
+     * Возвращает точность (разрядность) чисел предопределена
+     * @return true - предопределена, false - задана явно
+     */
+    public boolean precisionPredefined(){ return precisionPredefined; }
+
+    /**
+     * Клонирует и указывает точность (разрядность) чисел предопределена
+     * @param predef true - точность чисел предопределена, false - задана явно
+     * @return клон
+     */
+    public FloatNumberTok precisionPredefined( boolean predef ){
+        return cloneAndConf( c->c.precisionPredefined = predef );
+    }
     @Override
     public Number value(){
         switch (precision){
