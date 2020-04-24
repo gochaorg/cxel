@@ -302,4 +302,13 @@ public class JsEvalTest {
         parse("'hex \\x23'").expected("hex #").run();
         parse("'unicode \\u0023'").expected("unicode #").run();
     }
+
+    @Test
+    public void booleanOp(){
+        System.out.println("==== booleanOp() ====");
+        parse("true || true").eval();
+        parse("true || 1").eval();
+        parse("1 || true").eval();
+        parse("{} || true").eval();
+    }
 }

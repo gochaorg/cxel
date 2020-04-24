@@ -239,6 +239,7 @@ public class EvalContext {
             }
 
             FnName fnName = m.getAnnotation(FnName.class);
+            if( fnName==null )continue;
             for( String name : fnName.value() ){
                 bindStaticMethod(name, m);
             }

@@ -7,10 +7,7 @@ import xyz.cofe.cxel.Parser;
 import xyz.cofe.cxel.ast.AST;
 import xyz.cofe.cxel.eval.Eval;
 import xyz.cofe.cxel.eval.EvalContext;
-import xyz.cofe.cxel.js.op.AndOperator;
-import xyz.cofe.cxel.js.op.NotOperator;
-import xyz.cofe.cxel.js.op.OrOperator;
-import xyz.cofe.cxel.js.op.UnaryMinusOperator;
+import xyz.cofe.cxel.js.op.*;
 import xyz.cofe.cxel.tok.*;
 import xyz.cofe.text.tparse.CToken;
 import xyz.cofe.text.tparse.GR;
@@ -327,6 +324,10 @@ public class JsEvaluator {
         context.bindStaticMethods(NotOperator.class);
         context.bindStaticMethods(OrOperator.class);
         context.bindStaticMethods(AndOperator.class);
+        context.bindStaticMethods(BitOrOperator.class);
+        context.bindStaticMethods(BitAndOperator.class);
+        context.bindStaticMethods(BitXorOperator.class);
+        context.bindStaticMethods(StrongEqualsOperator.class);
         return context;
     }
 
