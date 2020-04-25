@@ -6,7 +6,7 @@ import xyz.cofe.cxel.js.Undef;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UnaryMinusOperator {
+public class UnaryMinusOperator extends BaseOperator {
 /*
 - null                        -  null                      : object                => 0                     : number
 - undefined                   -  undefined                 : undefined             => NaN                   : number

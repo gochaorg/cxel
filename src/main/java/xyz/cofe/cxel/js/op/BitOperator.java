@@ -4,7 +4,7 @@ import xyz.cofe.cxel.js.Undef;
 
 import java.util.List;
 
-public class BitOperator {
+public class BitOperator extends BaseOperator {
     @SuppressWarnings("rawtypes")
     protected static long toBit( List lst ){
         if( lst == null ) return 0;

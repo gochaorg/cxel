@@ -6,7 +6,7 @@ import xyz.cofe.cxel.js.Undef;
 /**
  * Логическая операция НЕ - !
  */
-public class NotOperator {
+public class NotOperator extends BaseOperator {
     @FnName("!")
     public static boolean leftNull( Object value ){
         if( value==null )return true;

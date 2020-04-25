@@ -151,53 +151,16 @@ public class JsEvaluator {
     }
 
     //region лексический анализатор
-    /**
-     * Замена всех {@link xyz.cofe.cxel.tok.IntegerNumberTok} на {@link ForcedFloatNumberTok}
-     * @param toks токены/лексемы
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void hookTokens( List toks ){
-        if( toks==null )return;
-        for( int i=0; i<toks.size(); i++ ){
-            Object tok = toks.get(i);
-            if( tok!=null && tok.getClass()==IntegerNumberTok.class ){
-                IntegerNumberTok itok = (IntegerNumberTok)tok;
-                toks.set(i, new ForcedFloatNumberTok(itok));
-            }
-        }
-    }
-
     /** лексический анализатор */
-    protected Lexer lexer;
+    protected JsLexer lexer;
 
     /**
      * Лексер / Лексический анализ
      * @return лексический анализатор
      */
-    public Lexer lexer(){
+    public JsLexer lexer(){
         if( lexer!=null )return lexer;
-        lexer = new Lexer(){
-            @Override
-            public List<? extends CToken> tokens( String source ){
-                List<? extends CToken> toks = super.tokens(source);
-                hookTokens(toks);
-                return toks;
-            }
-
-            @Override
-            public List<? extends CToken> tokens( String source, int from ){
-                List<? extends CToken> toks = super.tokens(source, from);
-                hookTokens(toks);
-                return toks;
-            }
-
-            @Override
-            public List<? extends CToken> tokens( String source, int from, Predicate<CToken> filter ){
-                List<? extends CToken> toks = super.tokens(source, from, filter);
-                hookTokens(toks);
-                return toks;
-            }
-        };
+        lexer = new JsLexer();
         return lexer;
     }
     //endregion

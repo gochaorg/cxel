@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Оператор {@link xyz.cofe.cxel.Keyword#And}
  */
-public class AndOperator {
+public class AndOperator extends BaseOperator {
     //region null references
     @FnName("&&")
     public static Object and( Object left, Object right ){

@@ -4,7 +4,7 @@ import xyz.cofe.cxel.eval.FnName;
 
 import java.util.Objects;
 
-public class StrongEqualsOperator {
+public class StrongEqualsOperator extends BaseOperator {
     @SuppressWarnings("ConstantConditions")
     @FnName("===")
     public static Boolean eq( Object left, Object right ){
