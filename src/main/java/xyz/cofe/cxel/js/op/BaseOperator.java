@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public class BaseOperator {
     protected static final JsLexer lexer = new JsLexer();
+
     @SuppressWarnings("rawtypes")
     public static double toNumber( String str ){
         if( str==null || str.length()==0 )return 0.0;
@@ -26,12 +27,14 @@ public class BaseOperator {
 
         return num.doubleValue();
     }
+
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static double toNumber( List lst ){
         return toNumber(lst,null);
     }
+
     @SuppressWarnings({ "unchecked", "rawtypes", "SameParameterValue" })
-    protected static double toNumber( List<Object> lst, List visited ){
+    private static double toNumber( List<Object> lst, List visited ){
         if( lst==null )return Double.NaN;
 
         while( true ){
@@ -71,7 +74,7 @@ public class BaseOperator {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected static String toString_itm( Object itm, List visited ){
+    private static String toString_itm( Object itm, List visited ){
         if( itm==null )return "";
         if( Undef.instance.equals(itm) )return "";
 
@@ -88,7 +91,7 @@ public class BaseOperator {
     }
 
     @SuppressWarnings("rawtypes")
-    protected static String toString_itm( List lst, List visited ){
+    private static String toString_itm( List lst, List visited ){
         if( lst==null )throw new IllegalArgumentException("lst==null");
         if( lst.isEmpty() )return "";
 
@@ -101,5 +104,20 @@ public class BaseOperator {
         }
 
         return sb.toString();
+    }
+
+    public static Optional<Object> first( List lst ){
+        if( lst==null )return Optional.empty();
+
+        while( true ){
+            if( lst.isEmpty() ) return Optional.empty();
+            if( lst.size() > 1 ) return Optional.empty();
+            Object u = lst.get(0);
+            if( u instanceof List ){
+                lst = (List)u;
+                continue;
+            }
+            return Optional.ofNullable(u);
+        }
     }
 }

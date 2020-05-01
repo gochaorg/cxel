@@ -291,6 +291,15 @@ public class JsEvaluator {
         context.bindStaticMethods(BitAndOperator.class);
         context.bindStaticMethods(BitXorOperator.class);
         context.bindStaticMethods(StrongEqualsOperator.class);
+        context.bindStaticMethods(NotEqualsOperator.class);
+        context.bindStaticMethods(MoreOrEqualsOperator.class);
+        context.bindStaticMethods(MoreOperator.class);
+        context.bindStaticMethods(LessOrEqualsOperator.class);
+        context.bindStaticMethods(LessOperator.class);
+        context.bindStaticMethods(EqualsOperator.class);
+        context.bindStaticMethods(LShiftOpeartor.class);
+        context.bindStaticMethods(RShiftOpeator.class);
+        context.bindStaticMethods(RRShiftOperator.class);
         return context;
     }
 
