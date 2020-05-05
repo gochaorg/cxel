@@ -300,6 +300,12 @@ public class JsEvaluator {
         context.bindStaticMethods(LShiftOpeartor.class);
         context.bindStaticMethods(RShiftOpeator.class);
         context.bindStaticMethods(RRShiftOperator.class);
+        context.bindStaticMethods(AddOperator.class);
+        context.bindStaticMethods(SubOperator.class);
+        context.bindStaticMethods(MulOperator.class);
+        context.bindStaticMethods(DivOperator.class);
+        context.bindStaticMethods(ModuloOperator.class);
+        context.bindStaticMethods(PowerOperator.class);
         return context;
     }
 

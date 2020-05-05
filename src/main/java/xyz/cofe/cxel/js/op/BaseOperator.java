@@ -12,6 +12,8 @@ import java.util.Optional;
 public class BaseOperator {
     protected static final JsLexer lexer = new JsLexer();
 
+    protected static final String OBJECT_LITERAL = "[object Object]";
+
     @SuppressWarnings("rawtypes")
     public static double toNumber( String str ){
         if( str==null || str.length()==0 )return 0.0;
@@ -87,7 +89,7 @@ public class BaseOperator {
         if( itm instanceof Number )return itm.toString();
         if( itm instanceof String )return itm.toString();
 
-        return "[object Object]";
+        return OBJECT_LITERAL;
     }
 
     @SuppressWarnings("rawtypes")

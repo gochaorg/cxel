@@ -311,4 +311,11 @@ public class JsEvalTest {
         parse("1 || true").eval();
         parse("{} || true").eval();
     }
+
+    @Test
+    public void mathOp(){
+        System.out.println("==== mathOp() ====");
+        parse("1 + 2 * 3 / 4 - 5").eval();
+        parse("(1 + 2) * 3 / 4 - 5").eval();
+    }
 }
