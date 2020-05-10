@@ -244,6 +244,63 @@ public class Parser2Test {
     }
 
     @Test
+    public void bitShift1(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("1 << 2"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(4.0));
+    }
+
+    @Test
+    public void bitShift2(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("20 >> 2"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(5.0));
+    }
+
+    @Test
+    public void bitShift3(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("20 >>> 2"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(5.0));
+    }
+
+    @Test
+    public void bitShift4(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("-1 >>> 0"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+//        assertTrue(res.equals(5.0));
+        // TODO здесь херня со стороны js { -1 >>> 0 = 4294967295 } ~ groovy (0xffffffff = 4294967295) ~ (( ((long)(Integer.MAX_VALUE)) << 1  ) + 1 = 4294967295)
+    }
+
+    @Test
     public void addSubOrder(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 - 3 + 4 - 5"));

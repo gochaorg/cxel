@@ -598,8 +598,8 @@ public class Parser2 extends BaseParser {
     public final GR<TPointer,AST> power = binaryOp( primary, Keyword.Power );
     public final GR<TPointer,AST> mulDiv = binaryOp( power, Keyword.Multiple, Keyword.Divide, Keyword.Modulo );
     public final GR<TPointer,AST> addSub = binaryOp( mulDiv, Keyword.Plus, Keyword.Minus );
-    { expression.setTarget(addSub); }
-//    public final GR<TPointer,AST> bitShift = binaryOp( addSub, Keyword.BitLeftShift, Keyword.BitRightShift, Keyword.BitRRightShift );
+    public final GR<TPointer,AST> bitShift = binaryOp( addSub, Keyword.BitLeftShift, Keyword.BitRightShift, Keyword.BitRRightShift );
+    { expression.setTarget(bitShift); }
 //    public final GR<TPointer,AST> compare = bitShift.next( Keyword.parserOf(
 //        Keyword.Less,
 //        Keyword.LessOrEquals,
