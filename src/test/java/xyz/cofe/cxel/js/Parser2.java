@@ -185,6 +185,7 @@ public class Parser2 extends BaseParser {
 
         if( operators==null )throw new IllegalArgumentException("operators==null");
         if( operators.length<1 )throw new IllegalArgumentException("operators.length<1");
+
         return
             left.next( Keyword.parserOf(operators).next( right )
                 .map(BinaryRight::new).repeat().map(TailRights::new)
@@ -599,33 +600,36 @@ public class Parser2 extends BaseParser {
     public final GR<TPointer,AST> mulDiv = binaryOp( power, Keyword.Multiple, Keyword.Divide, Keyword.Modulo );
     public final GR<TPointer,AST> addSub = binaryOp( mulDiv, Keyword.Plus, Keyword.Minus );
     public final GR<TPointer,AST> bitShift = binaryOp( addSub, Keyword.BitLeftShift, Keyword.BitRightShift, Keyword.BitRRightShift );
-    { expression.setTarget(bitShift); }
-//    public final GR<TPointer,AST> compare = bitShift.next( Keyword.parserOf(
-//        Keyword.Less,
-//        Keyword.LessOrEquals,
-//        Keyword.More,
-//        Keyword.MoreOrEquals,
-//        Keyword.In,
-//        Keyword.InstanceOf
-//    ) ).next( bitShift ).map( BinaryOpAST::new );
-//    public final GR<TPointer,AST> equals = compare.next( Keyword.parserOf(
-//        Keyword.Equals,
-//        Keyword.NotEquals,
-//        Keyword.StrongEquals,
-//        Keyword.StrongNotEquals
-//    ) ).next( compare ).map( BinaryOpAST::new );
-//    public final GR<TPointer,AST> bitAnd = binaryOp( equals, Keyword.BitAnd );
-//    public final GR<TPointer,AST> bitXor = binaryOp( bitAnd, Keyword.BitXor );
-//    public final GR<TPointer,AST> bitOr = binaryOp( bitXor, Keyword.BitOr );
-//    public final GR<TPointer,AST> and = binaryOp( bitOr, Keyword.And );
-//    public final GR<TPointer,AST> or = binaryOp( and, Keyword.Or );
-//    public final GR<TPointer,AST> ifOp = or.next(Keyword.Question.parser())
-//        .next(or)
-//        .next(Keyword.Colon.parser())
-//        .next(or)
-//        .map((cond, k_qst, succ, k_cln, fail) -> new IfAST(
-//            cond.begin(), fail.end(), cond, succ, fail)
-//        );
-//
-//    { expression.setTarget(ifOp); }
+    public final GR<TPointer,AST> compare = bitShift.next( Keyword.parserOf(
+        Keyword.Less,
+        Keyword.LessOrEquals,
+        Keyword.More,
+        Keyword.MoreOrEquals,
+        Keyword.In,
+        Keyword.InstanceOf
+    ) ).next( bitShift ).map( BinaryOpAST::new )
+        .another( bitShift ).map( t->(AST)t );
+    public final GR<TPointer,AST> equals = compare.next( Keyword.parserOf(
+        Keyword.Equals,
+        Keyword.NotEquals,
+        Keyword.StrongEquals,
+        Keyword.StrongNotEquals
+    ) ).next( compare ).map( BinaryOpAST::new )
+        .another( compare ).map( t->(AST)t );
+    public final GR<TPointer,AST> bitAnd = binaryOp( equals, Keyword.BitAnd );
+    public final GR<TPointer,AST> bitXor = binaryOp( bitAnd, Keyword.BitXor );
+    public final GR<TPointer,AST> bitOr = binaryOp( bitXor, Keyword.BitOr );
+    public final GR<TPointer,AST> and = binaryOp( bitOr, Keyword.And );
+    public final GR<TPointer,AST> or = binaryOp( and, Keyword.Or );
+//    { expression.setTarget(or); }
+
+    public final GR<TPointer,AST> ifOp = or.next(Keyword.Question.parser())
+        .next(or)
+        .next(Keyword.Colon.parser())
+        .next(or)
+        .map((cond, k_qst, succ, k_cln, fail) -> new IfAST(
+            cond.begin(), fail.end(), cond, succ, fail)
+        ).another( or ).map( t->(AST)t );
+
+    { expression.setTarget(ifOp); }
 }
