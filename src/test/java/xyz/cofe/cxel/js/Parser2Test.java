@@ -116,7 +116,7 @@ public class Parser2Test {
         Object res = eval(oast.get());
         System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
         assertTrue(res!=null);
-        assertTrue(res.equals(-1));
+        assertTrue(res.equals(-1.0));
     }
 
     @Test
