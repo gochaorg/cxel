@@ -594,7 +594,7 @@ public class Parser2 extends BaseParser {
         return reslt;
     }
     //endregion
-    //public final GR<TPointer,AST> primary = postfix( atom, expression );
+//    public final GR<TPointer,AST> primary = postfix( atom, expression );
     //public final GR<TPointer,AST> power = binaryOp( primary, Keyword.Power );
     //public final GR<TPointer,AST> mulDiv = binaryOp( power, Keyword.Multiple, Keyword.Divide, Keyword.Modulo );
     public final GR<TPointer,AST> mulDiv = binaryOp( atom, Keyword.Multiple, Keyword.Divide, Keyword.Modulo );

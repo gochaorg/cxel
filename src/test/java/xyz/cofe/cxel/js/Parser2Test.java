@@ -108,6 +108,15 @@ public class Parser2Test {
 
         Assert.assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
+
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,BinaryOpAST,BinaryOpAST,NumberAST,NumberAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(-1));
     }
 
     @Test
@@ -117,6 +126,15 @@ public class Parser2Test {
 
         Assert.assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
+
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,NumberAST,BinaryOpAST,BinaryOpAST,NumberAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(-2.5));
     }
 
     @Test
@@ -126,6 +144,15 @@ public class Parser2Test {
 
         Assert.assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
+
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,NumberAST,NumberAST,BinaryOpAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(2.75));
     }
 
     @Test
@@ -135,6 +162,18 @@ public class Parser2Test {
 
         Assert.assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
+
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+
+        double nres = ((Double)res);
+        assertTrue(nres > 2.66);
+        assertTrue(nres < 2.67);
     }
 
     @Test
@@ -148,6 +187,11 @@ public class Parser2Test {
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
         System.out.println(str);
         assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(1.0));
     }
 
     @Test
@@ -161,57 +205,82 @@ public class Parser2Test {
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
         System.out.println(str);
         assertTrue( str.startsWith("BinaryOpAST,NumberAST,BinaryOpAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(14.0));
     }
 
     @Test
     public void test08(){
         Parser2 parser = new Parser2();
-        Optional<AST> oast1 = parser.expression.apply(tpointer("2 + (3 + 4)"));
+        Optional<AST> oast = parser.expression.apply(tpointer("2 + (3 + 4)"));
 
-        assertTrue(oast1.isPresent());
-        ASTDump.build().dump(oast1.get());
+        assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
 
-        String str1 = oast1.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        String str1 = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
         System.out.println(str1);
-//        assertTrue( str1.startsWith("BinaryOpAST,NumberAST,BinaryOpAST,NumberAST,NumberAST") );
+        assertTrue( str1.startsWith("BinaryOpAST,NumberAST,ParenthesAST,BinaryOpAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(9.0));
     }
 
     @Test
     public void test09(){
         Parser2 parser = new Parser2();
-        Optional<AST> oast2 = parser.expression.apply(tpointer("(2 + 3) + 4"));
+        Optional<AST> oast = parser.expression.apply(tpointer("(2 + 3) + 4"));
 
-        assertTrue(oast2.isPresent());
-        ASTDump.build().dump(oast2.get());
+        assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
 
-        String str2 = oast2.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
-        System.out.println(str2);
-//        assertTrue( str2.startsWith("BinaryOpAST,NumberAST,BinaryOpAST,NumberAST,NumberAST") );
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,ParenthesAST,BinaryOpAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(9.0));
     }
 
     @Test
     public void test10(){
         Parser2 parser = new Parser2();
-        Optional<AST> oast2 = parser.expression.apply(tpointer("(1 + 2) * 3 / 4 - 5"));
+        Optional<AST> oast = parser.expression.apply(tpointer("(1 + 2) * 3 / 4 - 5"));
 
-        assertTrue(oast2.isPresent());
-        ASTDump.build().dump(oast2.get());
+        assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
 
-        String str2 = oast2.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
-        System.out.println(str2);
-//        assertTrue( str2.startsWith("BinaryOpAST,NumberAST,BinaryOpAST,NumberAST,NumberAST") );
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,BinaryOpAST,ParenthesAST,BinaryOpAST,NumberAST,NumberAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(-2.75));
     }
 
     @Test
     public void test10_2(){
         Parser2 parser = new Parser2();
-        Optional<AST> oast2 = parser.expression.apply(tpointer("3 * 3 / 4 - 5"));
+        Optional<AST> oast = parser.expression.apply(tpointer("3 * 3 / 4 - 5"));
 
-        assertTrue(oast2.isPresent());
-        ASTDump.build().dump(oast2.get());
+        assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
 
-        String str2 = oast2.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
-        System.out.println(str2);
-//        assertTrue( str2.startsWith("BinaryOpAST,NumberAST,BinaryOpAST,NumberAST,NumberAST") );
+        String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
+        System.out.println(str);
+        assertTrue( str.startsWith("BinaryOpAST,BinaryOpAST,BinaryOpAST,NumberAST,NumberAST,NumberAST,NumberAST") );
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(-2.75));
     }
 }
