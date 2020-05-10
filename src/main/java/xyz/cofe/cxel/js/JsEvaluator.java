@@ -181,7 +181,7 @@ public class JsEvaluator {
              */
             public GR<TPointer, ? extends AST> binaryOps() {
             return cache( "binaryOps", ()-> binaryOps(
-                postfix(atomValue())
+                postfix(atomValue()), expression()
                 , Keyword.Power.parser()
                 , Keyword.parserOf(Keyword.Multiple, Keyword.Divide, Keyword.Modulo)
                 , Keyword.parserOf(Keyword.Plus, Keyword.Minus)

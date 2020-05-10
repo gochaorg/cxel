@@ -232,8 +232,14 @@ public class Eval {
             return map( (MapAST)ast );
         }else if( ast instanceof IfAST ){
             return If( (IfAST)ast );
+        }else if( ast instanceof ParenthesAST ){
+            return parenthes( (ParenthesAST)ast );
         }
         throw new EvalError("can't evaluate undefined ast: "+ast.getClass());
+    }
+
+    protected Object parenthes( ParenthesAST ast ){
+        return eval( ast.expression() );
     }
 
     /**

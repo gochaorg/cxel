@@ -1,4 +1,4 @@
-package xyz.cofe.cxel;
+package xyz.cofe.cxel.parse;
 
 import java.util.function.Supplier;
 

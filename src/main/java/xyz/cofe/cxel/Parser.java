@@ -1,32 +1,58 @@
 package xyz.cofe.cxel;
 
 import xyz.cofe.cxel.ast.*;
+import xyz.cofe.cxel.parse.BaseParser;
+import xyz.cofe.cxel.parse.GRCache;
+import xyz.cofe.cxel.parse.Literals;
 import xyz.cofe.cxel.tok.*;
 import xyz.cofe.text.tparse.*;
 
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 /**
  * Парсинг AST
  */
-public class Parser {
-    //region cache
-    protected Map<String,Object> cache = new LinkedHashMap<>();
-    protected synchronized <U> U cache(String key, Supplier<U> fn){
-        if( key==null )throw new IllegalArgumentException("key==null");
-        if( fn==null )throw new IllegalArgumentException("fn==null");
-        if( cache.containsKey(key) ){
-            return (U)cache.get(key);
-        }
-        U u = fn.get();
-        cache.put(key,u);
-        return u;
-    }
-    //endregion
-
+public class Parser extends BaseParser implements GRCache, Literals {
     //region atmoic( tokenClass, map2AST ) : GR
+    @SuppressWarnings({ "unchecked", "ConstantConditions" })
+    public static class Atomic<T extends CToken, A extends AST> implements GR<TPointer,A>
+    {
+        private final Class<T> target;
+        private final BiFunction<TPointer,T,A> map;
+
+        public Atomic(Class<T> target, BiFunction<TPointer,T,A> map){
+            if( target==null )throw new IllegalArgumentException("target==null");
+            if( map==null )throw new IllegalArgumentException("map==null");
+            this.target = target;
+            this.map = map;
+        }
+
+        private String name;
+
+        @Override
+        public GR<TPointer, A> name( String name ){
+            this.name = name;
+            return this;
+        }
+        @Override public String name(){ return name; }
+
+        @Override
+        public String toString(){
+            if( name!=null )return name;
+            return super.toString();
+        }
+
+        @Override
+        public Optional<A> apply( TPointer ptr ){
+            CToken t = ptr.lookup(0).orElseGet( null );
+            if( t!=null && target.isAssignableFrom(t.getClass()) ){
+                return Optional.of( map.apply(ptr,(T)t) );
+            }
+            return Optional.empty();
+        }
+    }
+
     /**
      * Создает правило сопоставления для единичной лексемы вывод AST узла
      * @param target тип лексемы
@@ -35,17 +61,10 @@ public class Parser {
      * @param <A> тип AST
      * @return правило
      */
-    @SuppressWarnings({ "unchecked", "ConstantConditions" })
     public static <T extends CToken, A extends AST>
     GR<TPointer,A> atomic( Class<T> target, BiFunction<TPointer,T,A> map ){
         if( target==null )throw new IllegalArgumentException("target == null");
-        return ptr -> {
-            CToken t = ptr.lookup(0).orElseGet( null );
-            if( t!=null && target.isAssignableFrom(t.getClass()) ){
-                return Optional.of( map.apply(ptr,(T)t) );
-            }
-            return Optional.empty();
-        };
+        return new Atomic<>(target,map);
     }
     //endregion
 
@@ -116,69 +135,6 @@ public class Parser {
     }
     //endregion
 
-    //region Литеральные значения
-    //region number : GR
-    /**
-     * Парсинг целого числа
-     */
-    public GR<TPointer, AST> intNumber(){
-        return cache( "intNumber", ()-> atomic( IntegerNumberTok.class, NumberAST::new ) );
-    }
-
-    /**
-     * Парсинг плавующего числа
-     */
-    public GR<TPointer, AST> floatNumber(){
-        return cache( "floatNumber", ()-> atomic( FloatNumberTok.class, NumberAST::new ) );
-    }
-
-    /**
-     * Парсинг числа
-     */
-    public GR<TPointer, AST> number(){
-        return cache( "number", ()-> floatNumber().another(intNumber()).map( t->(AST)t ) );
-    }
-    //endregion
-    //region bool : GR
-    /**
-     * Парсинг булево
-     */
-    public GR<TPointer, AST> bool() {
-        return cache( "bool", ()-> ptr -> {
-            Optional<CToken> tok = ptr.lookup(0);
-            if (tok.isPresent() && tok.get() instanceof KeywordTok) {
-                Keyword k = ((KeywordTok) tok.get()).keyword();
-                if (k != null) {
-                    if (k == Keyword.True || k == Keyword.False) {
-                        return Optional.of(new BooleanAST(ptr, (KeywordTok) tok.get()));
-                    }
-                }
-            }
-            return Optional.empty();
-        } );
-    }
-    //endregion
-    //region null : GR
-    /**
-     * Парсинг null значение
-     */
-    public GR<TPointer, AST> nullConst(){
-        return cache( "nullConst", ()-> ptr -> {
-            Optional<CToken> tok = ptr.lookup(0);
-            if( tok.isPresent() && tok.get() instanceof KeywordTok ){
-                Keyword k = ((KeywordTok)tok.get()).keyword();
-                if( k!=null ){
-                    if( k==Keyword.Null ){
-                        return Optional.of( new NullAST(ptr, (KeywordTok)tok.get()) );
-                    }
-                }
-            }
-            return Optional.empty();
-        } );
-    }
-    //endregion
-    //endregion
-
     //region expression() - Выражение
     /**
      * Выражение <br>
@@ -220,9 +176,10 @@ public class Parser {
      *   {@link #expression}
      *   {@link Keyword#CloseParenthes ')'}
      */
-    public GR<TPointer, ? extends AST> bracketExpression() {
-        return cache( "bracketExpression", ()-> Keyword.OpenParenthes.parser().next(expression()).next(Keyword.CloseParenthes.parser())
-            .map((l, e, r) -> e) );
+    public GR<TPointer, ? extends AST> parenthes() {
+        return cache( "parenthes",
+            ()-> Keyword.OpenParenthes.parser().next(expression()).next(Keyword.CloseParenthes.parser())
+            .map( ParenthesAST::new ) );
     }
 
     /**
@@ -442,23 +399,23 @@ public class Parser {
         };
     }
 
-    /**
-     * Литеральные значения
-     */
-    public GR<TPointer,? extends AST> literal() {
-        return cache( "literal", ()-> nullConst().<AST>another(
-            number()
-        ).<TPointer, AST>another(
-            bool()
-        ).<TPointer, AST>another(
-            atomic(StringTok.class, StringAST::new)
-        ).map(t -> (AST) t) );
-    }
+//    /**
+//     * Литеральные значения
+//     */
+//    public GR<TPointer,? extends AST> literal() {
+//        return cache( "literal", ()-> nullConst().<AST>another(
+//            number()
+//        ).<TPointer, AST>another(
+//            bool()
+//        ).<TPointer, AST>another(
+//            atomic(StringTok.class, StringAST::new)
+//        ).map(t -> (AST) t) );
+//    }
 
     /**
      * Атомарное значение <br>
      * atomValue ::=
-     *     {@link #bracketExpression} <br>
+     *     {@link #parenthes} <br>
      *   | {@link #number} <br>
      *   | {@link #bool} <br>
      *   | {@link #nullConst} <br>
@@ -467,7 +424,7 @@ public class Parser {
      *   | {@link #unaryExression}
      */
     public GR<TPointer,? extends AST> atomValue() {
-        return cache( "atomValue", ()-> bracketExpression()
+        return cache( "atomValue", ()-> parenthes()
             .another(list(expression))
             .another(map(
                 literal(),
@@ -646,6 +603,24 @@ public class Parser {
         GR<TPointer, ? extends AST> gr = start;
         for( GR<TPointer,KeywordAST> kw : orderKeywords ){
             gr = binaryOp( gr, kw, gr );
+        }
+
+        return gr;
+    }
+
+    @SafeVarargs
+    public static GR<TPointer, ? extends AST> binaryOps(
+        GR<TPointer, ? extends AST> start,
+        GR<TPointer, ? extends AST> next,
+        GR<TPointer,KeywordAST> ... orderKeywords
+    ) {
+        if( start==null )throw new IllegalArgumentException("start==null");
+        if( next==null )throw new IllegalArgumentException("next==null");
+        if( orderKeywords==null )throw new IllegalArgumentException("orderKeywords==null");
+
+        GR<TPointer, ? extends AST> gr = start;
+        for( GR<TPointer,KeywordAST> kw : orderKeywords ){
+            gr = binaryOp( gr, kw, next );
         }
 
         return gr;
