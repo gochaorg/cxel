@@ -154,24 +154,73 @@ public enum Keyword {
         };
     }
 
-    /**
-     * Парсинг входящей цепочки на свопадение с указанной лексеммой
-     * @return парсер
-     */
-    public GR<TPointer, KeywordAST> parser(){
-        return ptr -> {
+    public static class KeywordsGRParser implements GR<TPointer,KeywordAST> {
+        private final Keyword[] keywords;
+
+        public KeywordsGRParser(Keyword[] keywords){
+            if( keywords==null )throw new IllegalArgumentException("keywords==null");
+            if( Arrays.asList(keywords).contains(null) )throw new IllegalArgumentException("Arrays.asList(keywords).contains(null)");
+            this.keywords = keywords;
+        }
+
+        @Override
+        public Optional<KeywordAST> apply( TPointer ptr ){
+            Optional<KeywordAST> res = null;
+            for( Keyword k : keywords ){
+                res = k.parser().apply(ptr);
+                if( res!=null && res.isPresent() )return res;
+            }
+            return Optional.empty();
+        }
+
+        @Override
+        public String toString(){
+            StringBuilder sb = new StringBuilder();
+            sb.append("keywords: ");
+            int c = -1;
+            for( Keyword kw : keywords ){
+                c++;
+                if( c>0 )sb.append(", ");
+                sb.append(kw.text);
+            }
+            return sb.toString();
+        }
+    }
+
+    public static class KeywordGRParser implements GR<TPointer, KeywordAST> {
+        private final Keyword keyword;
+        public KeywordGRParser( Keyword keyword ){
+            if( keyword==null )throw new IllegalArgumentException("keyword==null");
+            this.keyword = keyword;
+        }
+
+        @Override
+        public Optional<KeywordAST> apply( TPointer ptr ){
             Optional<CToken> tok = ptr.lookup(0);
             if( !tok.isPresent() )return Optional.empty();
 
             CToken t = tok.get();
             if( t instanceof KeywordTok ){
-                if( ((KeywordTok) t).keyword().text.equals( this.text ) ){
+                if( ((KeywordTok) t).keyword().text.equals( keyword.text ) ){
                     return Optional.of( new KeywordAST(ptr, (KeywordTok)t) );
                 }
             }
 
             return Optional.empty();
-        };
+        }
+
+        @Override
+        public String toString(){
+            return "keyword "+keyword.text;
+        }
+    }
+
+    /**
+     * Парсинг входящей цепочки на свопадение с указанной лексеммой
+     * @return парсер
+     */
+    public GR<TPointer, KeywordAST> parser(){
+        return new KeywordGRParser(this);
     }
 
     /**
@@ -183,14 +232,7 @@ public enum Keyword {
         if( keywords==null )throw new IllegalArgumentException( "keywords==null" );
         if( keywords.length<1 )throw new IllegalArgumentException( "keywords.length<1" );
         if( keywords.length==1 )return keywords[0].parser();
-        return ptr -> {
-            Optional<KeywordAST> res = null;
-            for( Keyword k : keywords ){
-                res = k.parser().apply(ptr);
-                if( res!=null && res.isPresent() )return res;
-            }
-            return Optional.empty();
-        };
+        return new KeywordsGRParser(keywords);
     }
     //endregion
     //region match() - Проверка на совпадение
