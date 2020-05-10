@@ -216,6 +216,34 @@ public class Parser2Test {
     }
 
     @Test
+    public void power1(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("2 ** 3"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(8.0));
+    }
+
+    @Test
+    public void power2(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("3 * 2 ** 3"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(24.0));
+    }
+
+    @Test
     public void addSubOrder(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 - 3 + 4 - 5"));
