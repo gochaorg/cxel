@@ -188,6 +188,20 @@ public class Parser2Test {
     }
 
     @Test
+    public void parenthes3(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("(1)"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(1.0));
+    }
+
+    @Test
     public void multiply(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2"));
