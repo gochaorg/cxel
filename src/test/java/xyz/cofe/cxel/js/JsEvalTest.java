@@ -10,6 +10,7 @@ import xyz.cofe.text.tparse.CToken;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -317,5 +318,14 @@ public class JsEvalTest {
         System.out.println("==== mathOp() ====");
         parse("1 + 2 * 3 / 4 - 5").eval();
         parse("(1 + 2) * 3 / 4 - 5").eval();
+    }
+
+    @Test
+    public void mathOp1(){
+        System.out.println("==== mathOp1() ====");
+        //parse("(1 + 2) * 3").eval();
+        JsEvaluator evaluator = new JsEvaluator();
+        Optional<AST> ast = evaluator.parser().expression().apply( evaluator.tpointer("(1 + 2) * 3", 0) );
+        ASTDump.build().dump( ast.get() );
     }
 }

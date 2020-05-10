@@ -1,4 +1,9 @@
 package xyz.cofe.cxel.parse;
 
-public class Atomic {
+import xyz.cofe.cxel.ast.AST;
+import xyz.cofe.text.tparse.GR;
+import xyz.cofe.text.tparse.TPointer;
+
+public interface Atomic extends GRCache {
+    GR<TPointer, AST> atmoic();
 }
