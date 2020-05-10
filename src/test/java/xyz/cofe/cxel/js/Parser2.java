@@ -470,10 +470,10 @@ public class Parser2 extends BaseParser {
     /** первичная "атомарная" конструкция */
     public final GR<TPointer,AST> atom =
         parenthes
-            //.another( unaryExression )
-            //.another( varRef )
-            //.another( list(expression) )
-            //.another( map(literal, expression) )
+            .another( unaryExression )
+            .another( varRef )
+            .another( list(expression) )
+            .another( map(literal, expression) )
             .another( literal )
             .map( t->(AST)t ).name("atom");
     //endregion

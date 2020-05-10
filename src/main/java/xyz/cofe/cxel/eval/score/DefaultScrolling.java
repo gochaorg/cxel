@@ -16,7 +16,7 @@ public class DefaultScrolling implements CallScoring<PreparedCall> {
         }
 
         if( preparedCall instanceof ParameterCount ){
-            int pcount = ((ParameterCount) preparedCall).parameterCount();
+            int pcount = ((ParameterCount) preparedCall).parameterCount()+1;
 
             if( preparedCall instanceof InvariantArgs ){
                 int invCalls = ((InvariantArgs) preparedCall).invariantArgs();

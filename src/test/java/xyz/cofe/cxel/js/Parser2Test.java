@@ -11,9 +11,12 @@ import xyz.cofe.cxel.js.op.*;
 import xyz.cofe.text.tparse.TPointer;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
+@SuppressWarnings({ "rawtypes", "SimplifiableJUnitAssertion", "ConstantConditions" })
 public class Parser2Test {
     //region eval
     protected EvalContext context;
@@ -27,6 +30,7 @@ public class Parser2Test {
         context = new EvalContext();
         context.bind("undefined", Undef.instance);
         context.bindStaticMethods(UnaryMinusOperator.class);
+        context.bindStaticMethods(UnaryPlusOperator.class);
         context.bindStaticMethods(NotOperator.class);
         context.bindStaticMethods(OrOperator.class);
         context.bindStaticMethods(AndOperator.class);
@@ -59,7 +63,15 @@ public class Parser2Test {
      */
     public Object eval( AST ast ){
         if( ast==null )throw new IllegalArgumentException("ast==null");
-        Eval eval = new Eval(context());
+        return eval(ast, null);
+    }
+    public Object eval( AST ast, Consumer<EvalContext> ctx ){
+        if( ast==null )throw new IllegalArgumentException("ast==null");
+        EvalContext context = context();
+        if( ctx!=null ){
+            ctx.accept(context);
+        }
+        Eval eval = new Eval(context);
         return eval.eval(ast);
     }
     //endregion
@@ -74,7 +86,7 @@ public class Parser2Test {
     //endregion
 
     @Test
-    public void test01(){
+    public void numLiteral(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.literal.apply(tpointer("1.2"));
 
@@ -88,7 +100,95 @@ public class Parser2Test {
     }
 
     @Test
-    public void test02_1(){
+    public void unaryMinus1(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("-1"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(-1.0));
+    }
+
+    @Test
+    public void unaryPlus1(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("+1"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get());
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(1.0));
+    }
+
+    @Test
+    public void varRef(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("a + b"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get(), ctx->ctx.bind("a",1.0).bind("b", 2.0));
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res.equals(3.0));
+    }
+
+    @Test
+    public void list1(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("[ a, b ]"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get(), ctx->ctx.bind("a",1.0).bind("b", 2.0));
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res instanceof List);
+
+        List lst = (List)res;
+        assertTrue(lst.size()==2);
+        assertTrue(lst.get(0)!=null);
+        assertTrue(lst.get(0).equals(1.0));
+        assertTrue(lst.get(1)!=null);
+        assertTrue(lst.get(1).equals(2.0));
+    }
+
+    @Test
+    public void map1(){
+        Parser2 parser = new Parser2();
+        Optional<AST> oast = parser.expression.apply(tpointer("{ a: a, b: b }"));
+
+        Assert.assertTrue(oast.isPresent());
+        ASTDump.build().dump(oast.get());
+
+        Object res = eval(oast.get(), ctx->ctx.bind("a",1.0).bind("b", 2.0));
+        System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
+        assertTrue(res!=null);
+        assertTrue(res instanceof Map);
+
+        Map m = (Map)res;
+        assertTrue(m.size()==2);
+
+        assertTrue(m.containsKey("a"));
+        assertTrue(m.get("a")!=null);
+        assertTrue(m.get("a").equals(1.0));
+
+        assertTrue(m.containsKey("b"));
+        assertTrue(m.get("b")!=null);
+        assertTrue(m.get("b").equals(2.0));
+    }
+
+    @Test
+    public void multiply(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2"));
 
@@ -102,7 +202,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test02(){
+    public void addSubOrder(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 - 3 + 4 - 5"));
 
@@ -120,7 +220,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test03(){
+    public void addMulDivSubOrder1(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 * 3 / 4 - 5"));
 
@@ -138,7 +238,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test04(){
+    public void addMulDivSubOrder2(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2 + 3 / 4"));
 
@@ -156,7 +256,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test05(){
+    public void mulDivOrder1(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("2 / 3 * 4"));
 
@@ -177,7 +277,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test06(){
+    public void addSubOrder1(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + 3 - 4"));
 
@@ -195,7 +295,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test07(){
+    public void addMulOrder(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + 3 * 4"));
 
@@ -213,7 +313,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test08(){
+    public void parenthes1(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + (3 + 4)"));
 
@@ -231,7 +331,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test09(){
+    public void parenthes2(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("(2 + 3) + 4"));
 
@@ -249,7 +349,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test10(){
+    public void parenthes3addSubMulDivOrder(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("(1 + 2) * 3 / 4 - 5"));
 
@@ -267,7 +367,7 @@ public class Parser2Test {
     }
 
     @Test
-    public void test10_2(){
+    public void mulDivSubOrder(){
         Parser2 parser = new Parser2();
         Optional<AST> oast = parser.expression.apply(tpointer("3 * 3 / 4 - 5"));
 
