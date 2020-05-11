@@ -17,10 +17,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 /**
@@ -285,6 +282,13 @@ public class EvalContext {
             return reflectCalls;
         }
     }
+    protected EvalContext reflectPreparingCalls(ReflectPreparingCalls calls){
+        if( calls==null )throw new IllegalArgumentException("calls==null");
+        synchronized( this ){
+            reflectCalls = calls;
+        }
+        return this;
+    }
     //endregion
     //region contextPrepatingCalls - вызов метода/функции
     protected volatile ContextPreparingCalls contextPreparingCalls;
@@ -299,7 +303,7 @@ public class EvalContext {
     //endregion
 
     protected volatile CallScoring<? super PreparedCall> scoring;
-    public CallScoring<? super PreparedCall> scoring(){
+    public CallScoring<? super PreparedCall> getScoring(){
         if( scoring!=null )return scoring;
         synchronized( this ){
             if( scoring!=null )return scoring = scoring;
@@ -307,7 +311,7 @@ public class EvalContext {
             return scoring;
         }
     }
-    public void scoring(CallScoring<? super PreparedCall> scoring){
+    public void setScoring( CallScoring<? super PreparedCall> scoring){
         if( scoring==null )throw new IllegalArgumentException("scoring==null");
         this.scoring = scoring;
     }
@@ -350,7 +354,7 @@ public class EvalContext {
         if( summaryCalls>1 ){
             // Есть несколько вариантов вызова
             // Ведем подсчет очков
-            CallScoring<? super PreparedCall> scoring = scoring();
+            CallScoring<? super PreparedCall> scoring = getScoring();
 
             List<Tuple2<? extends PreparedCall,Integer>> scoredRCalls = calls.keySet().stream().map( c -> {
                 return Tuple2.of(c,scoring.calculate(c, calls.get(c)));
@@ -428,6 +432,31 @@ public class EvalContext {
     }
     //endregion
 
+    protected final ReadWriteLock securityFilterLocks = new ReentrantReadWriteLock();
+    protected Predicate<Method> securityFilter;
+
+    public Predicate<Method> getSecurityFilter(){
+        try {
+            securityFilterLocks.readLock().lock();
+            return securityFilter;
+        } finally {
+            securityFilterLocks.readLock().unlock();
+        }
+    }
+
+    public void setSecurityFilter(Predicate<Method> sfilter){
+        try {
+            securityFilterLocks.writeLock().lock();
+
+            securityFilter = sfilter;
+            reflectPreparingCalls(
+                reflectPreparingCalls().securityFilter(securityFilter)
+            );
+        } finally {
+            securityFilterLocks.writeLock().unlock();
+        }
+    }
+
     /**
      * Чтение свойства
      * @param base Объект, чье свойство интересует
@@ -442,15 +471,24 @@ public class EvalContext {
         }
 
         try{
-            BeanInfo bi = Introspector.getBeanInfo(base.getClass());
-            for( PropertyDescriptor pd : bi.getPropertyDescriptors() ){
-                if( propertyName.equals(pd.getName()) && pd.getReadMethod()!=null ){
-                    Method m = pd.getReadMethod();
-                    return m.invoke(base);
+            securityFilterLocks.readLock().lock();
+
+            try{
+                BeanInfo bi = Introspector.getBeanInfo(base.getClass());
+                for( PropertyDescriptor pd : bi.getPropertyDescriptors() ){
+                    if( propertyName.equals(pd.getName()) && pd.getReadMethod() != null ){
+                        Method m = pd.getReadMethod();
+                        if( securityFilter!=null && !securityFilter.test(m) ){
+                            throw new SecurityException("can't resolve property '"+propertyName+"' for obj of type "+base.getClass()+" - locked by securityFilter");
+                        }
+                        return m.invoke(base);
+                    }
                 }
+            } catch( InvocationTargetException | IllegalAccessException | IntrospectionException e ){
+                throw new EvalError(e);
             }
-        }catch( InvocationTargetException | IllegalAccessException | IntrospectionException e ){
-            throw new EvalError(e);
+        } finally {
+            securityFilterLocks.readLock().unlock();
         }
 
         throw new EvalError("can't resolve property '"+propertyName+"' for obj of type "+base.getClass());

@@ -41,6 +41,12 @@
             <artifactId>xparse</artifactId>
             <version>1.4</version>
         </dependency>
+        <dependency>
+            <groupId>xyz.cofe</groupId>
+            <artifactId>text</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

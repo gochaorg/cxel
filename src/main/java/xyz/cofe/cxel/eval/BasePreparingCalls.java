@@ -20,10 +20,26 @@ public abstract class BasePreparingCalls implements PreparingCalls {
      */
     public static final String IMPLICIT="implicit";
 
+    /**
+     * Контекст исполнения
+     */
     protected final EvalContext context;
 
+    /**
+     * Конструктор
+     * @param context контекст исполнения
+     */
     public BasePreparingCalls(EvalContext context) {
         this.context = context;
+    }
+
+    /**
+     * Конструктор копирования
+     * @param sample образец для копирования
+     */
+    public BasePreparingCalls(BasePreparingCalls sample){
+        if( sample==null )throw new IllegalArgumentException("sample==null");
+        this.context = sample.context;
     }
 
     /**

@@ -285,7 +285,7 @@ public class JsEvaluator {
         context.bindFn( BasePreparingCalls.IMPLICIT, Byte.class, Double.class, Byte::doubleValue);
         context.bindFn( BasePreparingCalls.IMPLICIT, byte.class, Double.class, Byte::doubleValue);
 
-        context.scoring(
+        context.setScoring(
             new DefaultScrolling().
                 impicitPower(2).
                 covariantPower(3)
