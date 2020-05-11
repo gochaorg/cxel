@@ -12,7 +12,7 @@ import xyz.cofe.text.tparse.TPointer;
 
 import java.util.Optional;
 
-import static xyz.cofe.cxel.Parser.atomic;
+import static xyz.cofe.cxel.parse.BaseParser.atomic;
 
 /**
  * Литеральные конструкции

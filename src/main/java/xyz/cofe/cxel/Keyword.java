@@ -173,8 +173,18 @@ public enum Keyword {
             return Optional.empty();
         }
 
+        private String name;
+
+        @Override
+        public KeywordsGRParser name( String name ){
+            this.name = name;
+            return this;
+        }
+        @Override public String name(){ return name; }
+
         @Override
         public String toString(){
+            if( name!=null )return name;
             StringBuilder sb = new StringBuilder();
             sb.append("keywords: ");
             int c = -1;
@@ -211,8 +221,19 @@ public enum Keyword {
 
         @Override
         public String toString(){
+            if( name!=null )return name;
             return "keyword "+keyword.text;
         }
+
+        private String name;
+
+        @Override
+        public KeywordGRParser name( String name ){
+            this.name = name;
+            return this;
+        }
+
+        @Override public String name(){ return name; }
     }
 
     /**

@@ -3,28 +3,52 @@ package xyz.cofe.cxel.js;
 import xyz.cofe.cxel.Keyword;
 import xyz.cofe.cxel.ParseError;
 import xyz.cofe.cxel.ast.*;
-import xyz.cofe.cxel.parse.*;
+import xyz.cofe.cxel.parse.BaseParser;
 import xyz.cofe.cxel.tok.*;
-import xyz.cofe.text.tparse.*;
+import xyz.cofe.text.tparse.CToken;
+import xyz.cofe.text.tparse.GR;
+import xyz.cofe.text.tparse.ProxyGR;
+import xyz.cofe.text.tparse.TPointer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static xyz.cofe.cxel.parse.BaseParser.atomic;
-import static xyz.cofe.cxel.parse.BaseParser.dummy;
-
+/**
+ * Парсер JS выражений
+ */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class Parser2 extends BaseParser {
+public class JsParser extends BaseParser {
     //region Литералы
     /** Литерал - целое число */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public final GR<TPointer, AST> intNumber = (GR)atomic( IntegerNumberTok.class, NumberAST::new ).name("intNumber");
+
     /** Литерал - дробное число */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public final GR<TPointer, AST> floatNumber = (GR)atomic( FloatNumberTok.class, NumberAST::new ).name("floatNumber");
+
     /** Литерал - число */
     public final GR<TPointer, AST> number = floatNumber.another(intNumber).map( t->(AST)t ).name("number");
+
     /** Литерал - булево */
     public static class GRBool implements GR<TPointer, AST> {
+        private String name;
+
+        @Override
+        public GR<TPointer, AST> name( String name ){
+            this.name = name;
+            return this;
+        }
+
+        @Override public String name(){ return name; }
+
+        @Override
+        public String toString(){
+            if( name!=null )return name;
+            return super.toString();
+        }
+
         @Override
         public Optional<AST> apply( TPointer ptr ){
             Optional<CToken> tok = ptr.lookup(0);
@@ -39,10 +63,28 @@ public class Parser2 extends BaseParser {
             return Optional.empty();
         }
     }
+
     /** Литерал - булево */
     public final GR<TPointer, AST> bool = new GRBool();
+
     /** Литерал - null */
     public static class GRNull implements GR<TPointer, AST> {
+        private String name;
+
+        @Override
+        public GR<TPointer, AST> name( String name ){
+            this.name = name;
+            return this;
+        }
+
+        @Override public String name(){ return name; }
+
+        @Override
+        public String toString(){
+            if( name!=null )return name;
+            return super.toString();
+        }
+
         @Override
         public Optional<AST> apply( TPointer ptr ){
             Optional<CToken> tok = ptr.lookup(0);
@@ -57,271 +99,21 @@ public class Parser2 extends BaseParser {
             return Optional.empty();
         }
     }
+
     /** Литерал - null */
     public final GR<TPointer, AST> nullz = new GRNull();
+
     /** Литерал - строка */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public final GR<TPointer,AST> string = (GR)atomic(StringTok.class, StringAST::new).name("string");
+
     /** Литерал - литерал */
     public final GR<TPointer,AST> literal = number.another(bool).another(nullz).another(string).map().name("literal");
     //endregion
 
+    //region expression - Выражение
     /** Выражение */
     public final ProxyGR<TPointer,AST> expression = new ProxyGR<>(dummy()).name("expression");
-
-    //region  Правая рекурсия: значение 2 / 3 * 4 (=2.666) будет интерпретированно как 2 / ( 3 * 4 ) (=0.166)
-    //
-    //    public final ProxyGR<TPointer,AST> mulDiv1 = new ProxyGR<>(dummy());
-    //    public final GR<TPointer,AST> mulDiv =
-    //        literal.next(Keyword.parserOf(Keyword.Multiple,Keyword.Divide)).next(mulDiv1)
-    //            .map(BinaryOpAST::new)
-    //            .another(literal).map(t->(AST)t);
-    //    { mulDiv1.setTarget(mulDiv); }
-    //endregion
-    //region Нормальная левая "рекурсия" 2 / 3 * 4 будет ( 2 / 3 ) * 4
-    // Первый вариант - Нормальная левая "рекурсия" 2 / 3 * 4 будет ( 2 / 3 ) * 4
-    /*
-    public GR<TPointer,AST> mulDiv2 = new GR<TPointer, AST>() {
-        private GR<TPointer,KeywordAST> gKW = Keyword.parserOf(Keyword.Multiple,Keyword.Divide);
-
-        @Override
-        public Optional<AST> apply( TPointer ptr ){
-            GR<TPointer,AST> gLeft = literal;
-            GR<TPointer,AST> gRight = literal;
-
-            Optional<AST> left = gLeft.apply(ptr);
-            if( !left.isPresent() )return Optional.empty();
-
-            BinaryOpAST op = null;
-
-            while( true ){
-                Optional<KeywordAST> kw = gKW.apply(op!=null ? op.end() : left.get().end());
-                if( !kw.isPresent() ) return op != null ? Optional.of(op) : left;
-
-                Optional<AST> right = gRight.apply(kw.get().end());
-                if( !right.isPresent() ) return left;
-
-                if( op == null ){
-                    op = new BinaryOpAST(left.get(), kw.get(), right.get());
-                }else{
-                    op = new BinaryOpAST(op, kw.get(), right.get());
-                }
-            }
-        }
-    };
-    */
-    //endregion
-    //region Нормальня левая "рекурсия" через грамматику
-    /*
-    public final GR<TPointer,AST> mulDiv =
-        literal.next(
-            Keyword.parserOf(Keyword.Multiple,Keyword.Divide).next( literal )
-                .map(BinaryRight::new).repeat().map(TailRights::new)
-        ).map( (head,tail) -> {
-            BinaryOpAST op = null;
-            for( BinaryRight p : tail.tail ){
-                if( op==null ){
-                    op = new BinaryOpAST( head, p.op, p.right );
-                }else{
-                    op = new BinaryOpAST( op, p.op, p.right );
-                }
-            }
-            return op;
-        }).another( literal ).map( t->(AST)t );
-    */
-
-    /**
-     * Оператор и правая часть, т.е. для выражения a + b соответствует + b
-     */
-    public static class BinaryRight extends ASTBase<BinaryRight> {
-        public final KeywordAST op;
-        public final AST right;
-        public BinaryRight( KeywordAST op, AST right ){
-            this.op = op;
-            this.right = right;
-            begin = op.begin();
-            end = right.end();
-        }
-
-        @Override public BinaryRight clone(){ return new BinaryRight(op, right); }
-        @Override public AST[] children(){ return new AST[0]; }
-    }
-
-    /**
-     * Последовательность равноценных операторов,
-     * т.е. для a + b - c + d соответствует + b - c + d
-     */
-    public static class TailRights extends ASTBase<TailRights> {
-        final List<BinaryRight> tail;
-        public TailRights( List<BinaryRight> tail ){
-            this.tail = tail;
-            TPointer b = null;
-            TPointer e = null;
-            for( BinaryRight i : tail ){
-                b = b==null ? i.begin() : ( i.begin().compareTo(b)<0 ? i.begin() : b );
-                e = e==null ? i.end() : ( i.end().compareTo(e)>0 ? i.end() : e );
-            }
-            begin = b;
-            end = e;
-        }
-        @Override public TailRights clone(){ return new TailRights(tail); }
-        @Override public AST[] children(){ return new AST[0]; }
-    }
-
-    /**
-     * Консутруирование бинарного лево-рекурсивного оператора
-     * @param left левый операнд
-     * @param right правый операнд
-     * @param alt алтернатива
-     * @param operators оператор(ы)
-     * @return бинарный оператор
-     */
-    @SuppressWarnings({ "OptionalAssignedToNull", "ConstantConditions", "OptionalGetWithoutIsPresent" })
-    public static GR<TPointer,AST> binaryOp1( GR<TPointer,AST> left, GR<TPointer,AST> right, GR<TPointer,AST> alt, Keyword ... operators ){
-        if( left==null )throw new IllegalArgumentException("left==null");
-        if( right==null )throw new IllegalArgumentException("right==null");
-        if( alt==null )throw new IllegalArgumentException("alt==null");
-
-        if( operators==null )throw new IllegalArgumentException("operators==null");
-        if( operators.length<1 )throw new IllegalArgumentException("operators.length<1");
-
-        return ptr -> {
-            Optional<AST> leftOpt = left.apply(ptr);
-            if( leftOpt==null )throw new MapResultError("null return");
-
-            if( !leftOpt.isPresent() ){
-                if( left==alt )return Optional.empty();
-
-                Optional<AST> r = alt.apply(ptr);
-                if( r==null )throw new MapResultError("null return");
-                if( r.get()==null )throw new MapResultError("null return");
-                return r;
-            }
-
-            if( leftOpt.get()==null )throw new MapResultError("null return");
-
-            BinaryOpAST bop = null;
-            TPointer p = leftOpt.get().end();
-            while( true ){
-                boolean kwMatched = false;
-                for( Keyword kw : operators ){
-                    Optional<KeywordAST> kwOpt = kw.parser().apply(p);
-                    if( kwOpt!=null && kwOpt.isPresent() ){
-                        Optional<AST> rightOpt = right.apply(p.move(1));
-                        if( rightOpt==null )throw new MapResultError("null return");
-                        if( !rightOpt.isPresent() ){
-                            break;
-                        }else{
-                            if( rightOpt.get()==null )throw new MapResultError("null return");
-                            if( bop==null ){
-                                bop = new BinaryOpAST( leftOpt.get(), kwOpt.get(), rightOpt.get() );
-                            }else{
-                                bop = new BinaryOpAST( bop, kwOpt.get(), rightOpt.get() );
-                            }
-                            kwMatched = true;
-                            p = bop.end();
-                            break;
-                        }
-                    }else{
-                        break;
-                    }
-                }
-                if( !kwMatched )break;
-            }
-
-            if( bop==null ){
-                if( left==alt )return leftOpt;
-
-                Optional<AST> r = alt.apply(ptr);
-                if( r==null )throw new MapResultError("null return");
-                if( r.get()==null )throw new MapResultError("null return");
-                return r;
-            }
-
-            return Optional.of(bop);
-        };
-    }
-
-    /**
-     * Консутруирование бинарного лево-рекурсивного оператора
-     * @param left левый операнд
-     * @param right правый операнд
-     * @param operators оператор(ы)
-     * @return бинарный оператор
-     */
-    public static GR<TPointer,AST> binaryOp1( GR<TPointer,AST> left, GR<TPointer,AST> right, Keyword ... operators ){
-        if( left==null )throw new IllegalArgumentException("left==null");
-        if( right==null )throw new IllegalArgumentException("right==null");
-
-        if( operators==null )throw new IllegalArgumentException("operators==null");
-        if( operators.length<1 )throw new IllegalArgumentException("operators.length<1");
-
-        return binaryOp1( left, right, left, operators );
-    }
-
-    /**
-     * Консутруирование бинарного лево-рекурсивного оператора
-     * @param left операнд
-     * @param operators оператор(ы)
-     * @return бинарный оператор
-     */
-    public static GR<TPointer,AST> binaryOp1( GR<TPointer,AST> left, Keyword ... operators ){
-        if( left==null )throw new IllegalArgumentException("left==null");
-
-        if( operators==null )throw new IllegalArgumentException("operators==null");
-        if( operators.length<1 )throw new IllegalArgumentException("operators.length<1");
-
-        return binaryOp1( left, left, left, operators );
-    }
-
-    public GR<TPointer,AST> binaryOp( GR<TPointer,AST> left, Keyword ... operators ){
-        return new GR<TPointer, AST>() {
-            private String name;
-
-            @Override
-            public GR<TPointer, AST> name( String name ){
-                this.name = name;
-                return this;
-            }
-
-            @Override
-            public String name(){
-                return name;
-            }
-
-            @Override
-            public String toString(){
-                if( name!=null )return name;
-                return super.toString();
-            }
-
-            private GR<TPointer, KeywordAST> gKW = Keyword.parserOf(operators);
-
-            @Override
-            public Optional<AST> apply( TPointer ptr ){
-                GR<TPointer, AST> gLeft = left;
-                GR<TPointer, AST> gRight = left;
-
-                Optional<AST> left = gLeft.apply(ptr);
-                if( !left.isPresent() ) return Optional.empty();
-
-                BinaryOpAST op = null;
-
-                while( true ){
-                    Optional<KeywordAST> kw = gKW.apply(op != null ? op.end() : left.get().end());
-                    if( !kw.isPresent() ) return op != null ? Optional.of(op) : left;
-
-                    Optional<AST> right = gRight.apply(kw.get().end());
-                    if( !right.isPresent() ) return left;
-
-                    if( op == null ){
-                        op = new BinaryOpAST(left.get(), kw.get(), right.get());
-                    }else{
-                        op = new BinaryOpAST(op, kw.get(), right.get());
-                    }
-                }
-            }
-        };
-    }
     //endregion
 
     //region Атомарные конструкции
@@ -344,7 +136,7 @@ public class Parser2 extends BaseParser {
     ).next(expression).map((op, vl) -> new UnaryOpAST(op.begin(), vl.end(), op, vl));
     //endregion
     //region varRef - Указатель на переменную
-    public final GR<TPointer,AST> varRef = atomic( IdTok .class, VarRefAST::new);
+    public final GR<TPointer,AST> varRef = atomic( IdTok.class, VarRefAST::new);
     //endregion
     //region map - Карта значений
     /**
@@ -567,15 +359,6 @@ public class Parser2 extends BaseParser {
             .another( literal )
             .map( t->(AST)t ).name("atom");
     //endregion
-    //endregion
-
-    //region Проходноой вариант expression v1
-    //    public final GR<TPointer,AST> expression1 =
-    //        atom.next( Keyword.parserOf( Keyword.Multiple, Keyword.Divide) ).next( expression ).map( BinaryOpAST::new ).name("*/")
-    //        .another( atom.next(Keyword.parserOf( Keyword.Plus, Keyword.Minus)).next(expression).map(BinaryOpAST::new).name("+/") )
-    //        .another( atom ).map( t->(AST)t );
-    //
-    //    { expression.setTarget(expression1); }
     //endregion
 
     //region postfix

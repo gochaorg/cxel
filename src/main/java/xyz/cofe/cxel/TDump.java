@@ -95,15 +95,41 @@ public class TDump<A> {
             go( treeSteps );
         }
     }
+
+    private String indentPrefix;
+
+    public String getIndentPrefix(){
+        return indentPrefix;
+    }
+
+    public void setIndentPrefix( String indentPrefix ){
+        this.indentPrefix = indentPrefix;
+    }
+
+    private String indentSuffix;
+
+    public String getIndentSuffix(){
+        return indentSuffix;
+    }
+
+    public void setIndentSuffix( String indentSuffix ){
+        this.indentSuffix = indentSuffix;
+    }
+
     protected void go( Eterable<TreeStep<A>> treeSteps ) throws IOException {
         StringBuilder indnt = new StringBuilder();
         for( TreeStep<A> ts : treeSteps ){
             indnt.setLength(0);
+            if( indentPrefix!=null )indnt.append(indentPrefix);
+
             if( indent!=null && indent.length()>0 ){
                 for( int i = 0; i < ts.getLevel(); i++ ){
                     indnt.append(indent);
                 }
             }
+
+            if(indentSuffix!=null )indnt.append(indentSuffix);
+
             println(indnt,decode(ts.getNode()));
         }
     }

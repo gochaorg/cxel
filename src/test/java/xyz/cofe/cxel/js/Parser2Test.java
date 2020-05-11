@@ -10,11 +10,9 @@ import xyz.cofe.cxel.eval.EvalContext;
 import xyz.cofe.cxel.js.op.*;
 import xyz.cofe.text.tparse.TPointer;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.LongStream;
 
 @SuppressWarnings({ "rawtypes", "SimplifiableJUnitAssertion", "ConstantConditions" })
 public class Parser2Test {
@@ -87,7 +85,7 @@ public class Parser2Test {
 
     @Test
     public void numLiteral(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.literal.apply(tpointer("1.2"));
 
         Assert.assertTrue(oast.isPresent());
@@ -101,7 +99,7 @@ public class Parser2Test {
 
     @Test
     public void unaryMinus1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("-1"));
 
         Assert.assertTrue(oast.isPresent());
@@ -115,7 +113,7 @@ public class Parser2Test {
 
     @Test
     public void unaryPlus1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("+1"));
 
         Assert.assertTrue(oast.isPresent());
@@ -129,7 +127,7 @@ public class Parser2Test {
 
     @Test
     public void varRef(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("a + b"));
 
         Assert.assertTrue(oast.isPresent());
@@ -143,7 +141,7 @@ public class Parser2Test {
 
     @Test
     public void list1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("[ a, b ]"));
 
         Assert.assertTrue(oast.isPresent());
@@ -164,7 +162,7 @@ public class Parser2Test {
 
     @Test
     public void map1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("{ a: a, b: b }"));
 
         Assert.assertTrue(oast.isPresent());
@@ -189,7 +187,7 @@ public class Parser2Test {
 
     @Test
     public void parenthes3(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("(1)"));
 
         Assert.assertTrue(oast.isPresent());
@@ -203,7 +201,7 @@ public class Parser2Test {
 
     @Test
     public void multiply(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2"));
 
         Assert.assertTrue(oast.isPresent());
@@ -217,7 +215,7 @@ public class Parser2Test {
 
     @Test
     public void power1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 ** 3"));
 
         Assert.assertTrue(oast.isPresent());
@@ -231,7 +229,7 @@ public class Parser2Test {
 
     @Test
     public void power2(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("3 * 2 ** 3"));
 
         Assert.assertTrue(oast.isPresent());
@@ -245,7 +243,7 @@ public class Parser2Test {
 
     @Test
     public void bitShift1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 << 2"));
 
         Assert.assertTrue(oast.isPresent());
@@ -259,7 +257,7 @@ public class Parser2Test {
 
     @Test
     public void bitShift2(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("20 >> 2"));
 
         Assert.assertTrue(oast.isPresent());
@@ -273,7 +271,7 @@ public class Parser2Test {
 
     @Test
     public void bitShift3(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("20 >>> 2"));
 
         Assert.assertTrue(oast.isPresent());
@@ -287,7 +285,7 @@ public class Parser2Test {
 
     @Test
     public void bitShift4(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("-1 >>> 0"));
 
         Assert.assertTrue(oast.isPresent());
@@ -302,7 +300,7 @@ public class Parser2Test {
 
     @Test
     public void addSubOrder(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 - 3 + 4 - 5"));
 
         Assert.assertTrue(oast.isPresent());
@@ -320,7 +318,7 @@ public class Parser2Test {
 
     @Test
     public void addMulDivSubOrder1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 * 3 / 4 - 5"));
 
         Assert.assertTrue(oast.isPresent());
@@ -338,7 +336,7 @@ public class Parser2Test {
 
     @Test
     public void addMulDivSubOrder2(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2 + 3 / 4"));
 
         Assert.assertTrue(oast.isPresent());
@@ -356,7 +354,7 @@ public class Parser2Test {
 
     @Test
     public void mulDivOrder1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 / 3 * 4"));
 
         Assert.assertTrue(oast.isPresent());
@@ -377,7 +375,7 @@ public class Parser2Test {
 
     @Test
     public void addSubOrder1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + 3 - 4"));
 
         Assert.assertTrue(oast.isPresent());
@@ -395,7 +393,7 @@ public class Parser2Test {
 
     @Test
     public void addMulOrder(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + 3 * 4"));
 
         assertTrue(oast.isPresent());
@@ -413,7 +411,7 @@ public class Parser2Test {
 
     @Test
     public void parenthes1(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + (3 + 4)"));
 
         assertTrue(oast.isPresent());
@@ -431,7 +429,7 @@ public class Parser2Test {
 
     @Test
     public void parenthes2(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("(2 + 3) + 4"));
 
         assertTrue(oast.isPresent());
@@ -449,7 +447,7 @@ public class Parser2Test {
 
     @Test
     public void parenthes3addSubMulDivOrder(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("(1 + 2) * 3 / 4 - 5"));
 
         assertTrue(oast.isPresent());
@@ -467,7 +465,7 @@ public class Parser2Test {
 
     @Test
     public void mulDivSubOrder(){
-        Parser2 parser = new Parser2();
+        JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("3 * 3 / 4 - 5"));
 
         assertTrue(oast.isPresent());
@@ -481,5 +479,98 @@ public class Parser2Test {
         System.out.println("eval res = "+res+" : "+(res!=null ? res.getClass().getName() : "null"));
         assertTrue(res!=null);
         assertTrue(res.equals(-2.75));
+    }
+
+    @Test
+    public void speedtst1(){
+        JsParser parser = new JsParser();
+
+        EvalContext context = context();
+        Eval eval = new Eval(context);
+
+        List<String> operands = new ArrayList<>();
+        for( int i=1; i<50; i++ )operands.add( Integer.toString(i) );
+
+        List<String> operators = new ArrayList<>(
+            Arrays.asList("+","-","*","/","%","**","<<",">>",">>>","|","||")
+        );
+
+        int len = 10;
+        Random rnd = new Random();
+
+        StringBuilder sb = new StringBuilder();
+
+        int cycles = 100;
+        long[] genTime = new long[cycles];
+        long[] lexerTime = new long[cycles];
+        long[] parseTime = new long[cycles];
+        long[] evalTime = new long[cycles];
+        long[] summaryTime = new long[cycles];
+
+        long echo = System.currentTimeMillis();
+        for( int cnt=0;cnt<cycles;cnt++ ){
+            if( (System.currentTimeMillis()-echo)>500 ){
+                System.out.println("cycle "+(cnt+1)+" of "+cycles);
+                echo = System.currentTimeMillis();
+            }
+
+            long t0 = System.nanoTime();
+            sb.setLength(0);
+            for( int i=0;i<len;i++ ){
+                sb.append(operands.get(rnd.nextInt(operands.size())));
+                sb.append(" ");
+                sb.append(operators.get(rnd.nextInt(operators.size())));
+                sb.append(" ");
+            }
+            sb.append(operands.get(rnd.nextInt(operands.size())));
+            long t1 = System.nanoTime();
+
+            TPointer tptr = tpointer(sb.toString());
+            long t2 = System.nanoTime();
+
+            Optional<AST> oast = parser.expression.apply(tptr);
+            long t3 = System.nanoTime();
+
+            if( oast.isPresent() ){
+                eval.eval(oast.get());
+            }
+            long t4 = System.nanoTime();
+
+            genTime[cnt] = t1-t0;
+            lexerTime[cnt] = t2-t1;
+            parseTime[cnt] = t3-t2;
+            evalTime[cnt] = t4-t3;
+            summaryTime[cnt] = t4-t0;
+
+            //System.out.println(sb);
+        }
+
+        System.out.println("cycles="+cycles);
+
+        Consumer<long[]> showTimes = (times)->{
+            System.out.println("sum="+ LongStream.of(times).sum()/1000000L+" ms");
+            System.out.println("max="+LongStream.of(times).max().getAsLong()/1000000L+" ms");
+            System.out.println("avg="+LongStream.of(times).sum()/1000000L/cycles+" ms");
+            System.out.println("min="+LongStream.of(times).min().getAsLong()/1000000L+" ms");
+            System.out.println("99%="+LongStream.of(times).sorted().limit((long)(cycles*0.99)).max().getAsLong()*0.000001+" ms" );
+            System.out.println("95%="+LongStream.of(times).sorted().limit((long)(cycles*0.95)).max().getAsLong()*0.000001+" ms" );
+            System.out.println("90%="+LongStream.of(times).sorted().limit((long)(cycles*0.90)).max().getAsLong()*0.000001+" ms" );
+            System.out.println("50%="+LongStream.of(times).sorted().limit((long)(cycles*0.50)).max().getAsLong()*0.000001+" ms" );
+        };
+
+        System.out.println("summary times:");
+        showTimes.accept(summaryTime);
+
+        System.out.println("gen times:");
+        showTimes.accept(genTime);
+
+        System.out.println("lexer times:");
+        showTimes.accept(lexerTime);
+
+        System.out.println("parse times:");
+        showTimes.accept(parseTime);
+
+        System.out.println("eval times:");
+        showTimes.accept(evalTime);
     }
 }

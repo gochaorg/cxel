@@ -2,7 +2,6 @@ package xyz.cofe.cxel.eval;
 
 import xyz.cofe.cxel.EvalError;
 import xyz.cofe.cxel.ParseError;
-import xyz.cofe.cxel.Parser;
 import xyz.cofe.cxel.ast.*;
 import xyz.cofe.cxel.eval.op.*;
 import xyz.cofe.text.tparse.GR;
@@ -62,142 +61,6 @@ public class Eval {
     public EvalContext context(){ return context; }
     //endregion
 
-    //region Парсинг и интерпретация
-    public static class Builder {
-        protected String source;
-        protected int from;
-        protected EvalContext initialContext;
-        protected Consumer<EvalContext> contextConfigure;
-
-        public Builder( String source, int from ){
-            if( source==null )throw new IllegalArgumentException( "source==null" );
-            if( from<0 )throw new IllegalArgumentException( "from<0" );
-            this.source = source;
-            this.from = from;
-        }
-
-        public Builder( String source ){
-            if( source==null )throw new IllegalArgumentException( "source==null" );
-            this.source = source;
-            this.from = 0;
-        }
-
-        public Builder context( EvalContext initialContext ){
-            this.initialContext = initialContext;
-            return this;
-        }
-
-        public Builder context( Consumer<EvalContext> conf ){
-            this.contextConfigure = conf;
-            return this;
-        }
-
-        public AST parse(TPointer ptr){
-            if( ptr==null )throw new IllegalArgumentException("ptr==null");
-
-            Optional<AST> astRoot = new Parser().expression().apply( ptr );
-            if( astRoot==null || !astRoot.isPresent() ){
-                throw new ParseError("can't parse source, offset="+from+" source:\n"+source);
-            }
-
-            return astRoot.get();
-        }
-
-        public AST parse(){
-            TPointer ptr = Parser.source(source,from);
-            return parse(ptr);
-        }
-
-        public AST parse(String source,int from){
-            if( source==null )throw new IllegalArgumentException("source==null");
-            if( from<0 )throw new IllegalArgumentException("from<0");
-            TPointer ptr = Parser.source(source,from);
-            return parse(ptr);
-        }
-
-        public AST parse(String source){
-            if( source==null )throw new IllegalArgumentException("source==null");
-            TPointer ptr = Parser.source(source,0);
-            return parse(ptr);
-        }
-
-        public Eval createEval(){
-            return new Eval(initialContext);
-        };
-
-        public EvalContext context(){
-            Eval eval = createEval();
-
-            // Добавление стандартных операторов
-            EvalContext cx = eval.context();
-            cx.bindStaticMethods(EqualsOprations.class);
-            cx.bindStaticMethods(BoolOperations.class);
-            cx.bindStaticMethods(ByteOperators.class);
-            cx.bindStaticMethods(ShortOperators.class);
-            cx.bindStaticMethods(IntegerOperators.class);
-            cx.bindStaticMethods(LongOperators.class);
-            cx.bindStaticMethods(FloatOperators.class);
-            cx.bindStaticMethods(DoubleOperators.class);
-            cx.bindStaticMethods(UnaryOperations.class);
-
-            cx.bindStaticMethods(BitOperations.class);
-
-            //noinspection ConstantConditions
-            cx.bindFn("+",
-                CharSequence.class,CharSequence.class,
-                String.class,
-                (a,b)-> a==null && b==null ? "nullnull" :
-                    a!=null && b==null ? a+"null" :
-                        a==null && b!=null ? "null"+b :
-                            a.toString()+b.toString()
-            );
-
-            if( contextConfigure!=null ){
-                contextConfigure.accept(eval.context());
-            }
-            return eval.context();
-        }
-
-        public Object eval(){
-            AST astRoot = parse();
-            return eval(astRoot);
-        }
-
-        public Object eval(AST astRoot){
-            if( astRoot==null )throw new IllegalArgumentException("astRoot==null");
-
-            Eval eval = createEval();
-            if( contextConfigure!=null ){
-                contextConfigure.accept(eval.context());
-            }
-
-            return eval.eval(astRoot);
-        }
-
-        public Object eval(String source,int from){
-            if( source==null )throw new IllegalArgumentException("source==null");
-            if( from<0 )throw new IllegalArgumentException("from<0");
-            return eval(parse(source, from));
-        }
-
-        public Object eval(String source){
-            if( source==null )throw new IllegalArgumentException("source==null");
-            return eval(parse(source, 0));
-        }
-    }
-
-    public static Builder parse( String source, int from ){
-        if( source==null )throw new IllegalArgumentException( "source==null" );
-        if( from<0 )throw new IllegalArgumentException( "from<0" );
-        return new Builder(source,from);
-    }
-
-    public static Builder parse( String source ){
-        if( source==null )throw new IllegalArgumentException( "source==null" );
-        return new Builder(source,0);
-    }
-    //endregion
-
     //region Интерпретация AST узлов
     /**
      * Интерпретация ast дерева
@@ -244,8 +107,7 @@ public class Eval {
 
     /**
      * Интерпретация унарного оператора
-     * @param op AST узел,
-     *           см {@link xyz.cofe.cxel.Parser#unaryExression},
+     * @param op AST узел
      * @return результат интерпретации, см {@link EvalContext#call}
      */
     protected Object operator( UnaryOpAST op ){
@@ -266,7 +128,7 @@ public class Eval {
 
     /**
      * Интерпретация чтения переменной
-     * @param ast AST узел, см {@link xyz.cofe.cxel.Parser#varRef}
+     * @param ast AST узел
      * @return значение переменной, см {@link EvalContext#read}
      */
     protected Object variable( VarRefAST ast ){
@@ -275,7 +137,7 @@ public class Eval {
 
     /**
      * Интерпретация чтения свойства объекта
-     * @param ast AST узел, см {@link xyz.cofe.cxel.Parser#postfix}
+     * @param ast AST узел
      * @return значение свойства, см {@link EvalContext#get}
      */
     protected Object property( PropertyAST ast ){
@@ -285,7 +147,7 @@ public class Eval {
 
     /**
      * Интерпретация вызова метода
-     * @param ast AST узел, см {@link xyz.cofe.cxel.Parser#postfix}
+     * @param ast AST узел
      * @return результат вызова, см {@link EvalContext#call}
      */
     protected Object call( CallAST ast ){
@@ -316,7 +178,7 @@ public class Eval {
 
     /**
      * Интерпретация доступа к элементу массива / списка.
-     * @param ast AST узел доступа к элементу, см {@link xyz.cofe.cxel.Parser#postfix}
+     * @param ast AST узел доступа к элементу
      * @return значение см {@link EvalContext#getAt}
      */
     protected Object index( IndexAST ast ){
@@ -327,7 +189,7 @@ public class Eval {
 
     /**
      * Интерпретация создания списка
-     * @param listAst констукция списка, см {@link xyz.cofe.cxel.Parser#list(GR)}
+     * @param listAst констукция списка
      * @return список
      */
     protected Object list( ListAST listAst ){
@@ -347,7 +209,7 @@ public class Eval {
 
     /**
      * Интерпретация создания карты
-     * @param mast конструкция карты, см {@link xyz.cofe.cxel.Parser#map(GR, GR)}
+     * @param mast конструкция карты
      * @return карта
      */
     @SuppressWarnings("rawtypes")

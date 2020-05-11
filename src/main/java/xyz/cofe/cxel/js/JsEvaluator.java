@@ -1,22 +1,19 @@
 package xyz.cofe.cxel.js;
 
-import xyz.cofe.cxel.Keyword;
-import xyz.cofe.cxel.Lexer;
 import xyz.cofe.cxel.ParseError;
-import xyz.cofe.cxel.Parser;
 import xyz.cofe.cxel.ast.AST;
+import xyz.cofe.cxel.eval.BasePreparingCalls;
 import xyz.cofe.cxel.eval.Eval;
 import xyz.cofe.cxel.eval.EvalContext;
+import xyz.cofe.cxel.eval.score.DefaultScrolling;
 import xyz.cofe.cxel.js.op.*;
 import xyz.cofe.cxel.tok.*;
 import xyz.cofe.text.tparse.CToken;
-import xyz.cofe.text.tparse.GR;
 import xyz.cofe.text.tparse.TPointer;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * Парсинг js выражений.
@@ -166,48 +163,15 @@ public class JsEvaluator {
     //endregion
 
     /** Парсер / синтаксичесий анализ */
-    protected Parser parser;
+    protected JsParser parser;
 
     /**
      * Парсер на лексемы
      * @return Парсер / синтаксичесий анализатор
      */
-    public Parser parser(){
+    public JsParser parser(){
         if( parser!=null )return parser;
-        parser = new Parser(){
-            /**
-             * В явной форме определеям приоритет операций
-             * @return бинарные операции
-             */
-            public GR<TPointer, ? extends AST> binaryOps() {
-            return cache( "binaryOps", ()-> binaryOps(
-                postfix(atomValue()), expression()
-                , Keyword.Power.parser()
-                , Keyword.parserOf(Keyword.Multiple, Keyword.Divide, Keyword.Modulo)
-                , Keyword.parserOf(Keyword.Plus, Keyword.Minus)
-                , Keyword.parserOf(Keyword.BitLeftShift, Keyword.BitRightShift, Keyword.BitRRightShift)
-                , Keyword.parserOf(
-                    Keyword.Less,
-                    Keyword.LessOrEquals,
-                    Keyword.More,
-                    Keyword.MoreOrEquals,
-                    Keyword.In,
-                    Keyword.InstanceOf
-                )
-                , Keyword.parserOf(
-                    Keyword.Equals,
-                    Keyword.NotEquals,
-                    Keyword.StrongEquals,
-                    Keyword.StrongNotEquals
-                )
-                , Keyword.BitAnd.parser()
-                , Keyword.BitXor.parser()
-                , Keyword.BitOr.parser()
-                , Keyword.And.parser()
-                , Keyword.Or.parser()
-            ));
-            }
-        };
+        parser = new JsParser();
         return parser;
     }
 
@@ -242,7 +206,7 @@ public class JsEvaluator {
      * @return AST дерево
      */
     public AST parse(String source, int from){
-        Optional<AST> ast = parser().expression().apply(tpointer(source,from));
+        Optional<AST> ast = parser().expression.apply(tpointer(source,from));
         if( ast==null || !ast.isPresent() ){
             throw new ParseError("can't parse source, offset="+from+" source:\n"+source);
         }
@@ -256,7 +220,7 @@ public class JsEvaluator {
      */
     public AST parse(List<? extends CToken> tokens){
         if( tokens==null )throw new IllegalArgumentException("tokens==null");
-        Optional<AST> ast = parser().expression().apply(new TPointer(tokens));
+        Optional<AST> ast = parser().expression.apply(new TPointer(tokens));
         if( ast==null || !ast.isPresent() ){
             throw new ParseError("can't parse source, tokens:\n"+tokens);
         }
@@ -282,7 +246,10 @@ public class JsEvaluator {
     public EvalContext context(){
         if( context!=null )return context;
         context = new EvalContext();
+
         context.bind("undefined", Undef.instance);
+        context.bind("NaN", Double.NaN);
+
         context.bindStaticMethods(UnaryMinusOperator.class);
         context.bindStaticMethods(NotOperator.class);
         context.bindStaticMethods(OrOperator.class);
@@ -306,6 +273,24 @@ public class JsEvaluator {
         context.bindStaticMethods(DivOperator.class);
         context.bindStaticMethods(ModuloOperator.class);
         context.bindStaticMethods(PowerOperator.class);
+
+        context.bindFn( BasePreparingCalls.IMPLICIT, Float.class, Double.class, Float::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, float.class, Double.class, Float::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, Long.class, Double.class, Long::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, long.class, Double.class, Long::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, Integer.class, Double.class, Integer::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, int.class, Double.class, Integer::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, Short.class, Double.class, Short::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, short.class, Double.class, Short::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, Byte.class, Double.class, Byte::doubleValue);
+        context.bindFn( BasePreparingCalls.IMPLICIT, byte.class, Double.class, Byte::doubleValue);
+
+        context.scoring(
+            new DefaultScrolling().
+                impicitPower(2).
+                covariantPower(3)
+        );
+
         return context;
     }
 

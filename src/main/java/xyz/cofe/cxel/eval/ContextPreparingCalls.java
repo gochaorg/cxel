@@ -9,8 +9,8 @@ import java.util.Optional;
  * Реализует один метод - lookup,
  * Который из контекста находит подходящие функции для вызова
  */
-public class ContextPrepatingCalls extends BasePreparingCalls {
-    public ContextPrepatingCalls(EvalContext context){
+public class ContextPreparingCalls extends BasePreparingCalls {
+    public ContextPreparingCalls( EvalContext context){
         super(context);
         if( context==null )throw new IllegalArgumentException("context==null");
     }

@@ -196,6 +196,20 @@ public class AddOperator extends BaseOperator {
     }
 
     @FnName("+")
+    public static String add( String left, Double right ){
+        if( left==null )throw new IllegalArgumentException("left==null");
+        if( right==null )throw new IllegalArgumentException("right==null");
+        return left + right.toString();
+    }
+
+    @FnName("+")
+    public static String add( Double left, String right ){
+        if( left==null )throw new IllegalArgumentException("left==null");
+        if( right==null )throw new IllegalArgumentException("right==null");
+        return left.toString() + right;
+    }
+
+    @FnName("+")
     public static String add( String left, Object right ){
         if( left==null )throw new IllegalArgumentException("left==null");
         String rht = right==null ? "null" : OBJECT_LITERAL;

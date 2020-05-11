@@ -325,7 +325,14 @@ public class JsEvalTest {
         System.out.println("==== mathOp1() ====");
         //parse("(1 + 2) * 3").eval();
         JsEvaluator evaluator = new JsEvaluator();
-        Optional<AST> ast = evaluator.parser().expression().apply( evaluator.tpointer("(1 + 2) * 3", 0) );
+        Optional<AST> ast = evaluator.parser().expression.apply( evaluator.tpointer("(1 + 2) * 3", 0) );
         ASTDump.build().dump( ast.get() );
+    }
+
+    @Test
+    public void mathOp2(){
+        JsEvaluator evaluator = new JsEvaluator();
+        evaluator.context().bind("a","aa").bind("b",10);
+        evaluator.eval("a+b");
     }
 }
