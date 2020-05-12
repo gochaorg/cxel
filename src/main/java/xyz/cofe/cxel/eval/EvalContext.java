@@ -515,7 +515,7 @@ public class EvalContext {
 
         if( base.getClass().isArray() ){
             if( idx instanceof Number ){
-                Array.get(base, ((Number)idx).intValue() );
+                return Array.get(base, ((Number)idx).intValue() );
             }
         }
 

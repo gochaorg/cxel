@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 /**
  * Примеры для демострации
  */
-@SuppressWarnings({ "SimplifiableJUnitAssertion", "rawtypes" })
+@SuppressWarnings({ "SimplifiableJUnitAssertion", "rawtypes", "unchecked" })
 public class JsEvalSampleTest {
     public static class Interop1 {
         private String str;
@@ -26,6 +26,17 @@ public class JsEvalSampleTest {
 
         public void print( String str ){
             System.out.println("call print: "+str);
+        }
+        public String repeat( String str, int count ){
+            if( str==null )return null;
+            if( count<=0 )return "";
+            if( count==1 )return str;
+            if( str.length()==0 )return str;
+            StringBuilder sb = new StringBuilder();
+            for( int i=0; i<count; i++ ){
+                sb.append(str);
+            }
+            return sb.toString();
         }
     }
 
@@ -239,7 +250,14 @@ public class JsEvalSampleTest {
 
         header("## Строка",true)
             .source("'single'").expected("single").run()
-            .source("'double'").expected("double").run();
+            .source("\"double\"").expected("double").run()
+            .source("\"encode\\\"en\\\\code\\'abc\"").expected("encode\"en\\code'abc").run()
+            .source("'a\\nb\\rc\\bd\\fe\\tf\\vg'").expected("a\nb\rc\bd\fe\tf\u000bg").run()
+            .source("'\\152\\x73'").expected("js").run()
+            .source("'\\u0041'").expected("A").run()
+            .source("'\\u{00041}'").expected("A").run()
+            .source("'ab\\\nef'").expected("abef").run()
+            ;
 
         header("## Прочее",true)
             .source("null").expected(null).run()
@@ -322,5 +340,47 @@ public class JsEvalSampleTest {
                 assertTrue(((Map)m.get("m")).get("x")!=null);
                 assertTrue(((Map)m.get("m")).get("x").equals(7.0));
             }).run();
+    }
+
+    @Test
+    public void primary(){
+        Interop1 interop1 = new Interop1();
+        interop1.setStr("propvalue");
+
+        Map map = new LinkedHashMap();
+        map.put("key1","mapvalue");
+
+        Map map2 = new LinkedHashMap();
+        map2.put("a","a");
+        map.put("m",map2);
+
+        List list = new ArrayList();
+        list.add(1.0);
+        list.add("str");
+
+        Object[] arr = list.toArray();
+
+        header("## Свойство",true)
+            .bind("obj",interop1).bind("map",map)
+            .source("obj.str").expected(interop1.getStr()).run()
+            .source("map.key1").expected(map.get("key1")).run()
+            .source("map.m.a").expected(map2.get("a")).run();
+
+        header("## Индекс",true)
+            .bind("obj",interop1).bind("map",map)
+            .bind("list",list).bind("arr",arr)
+            .source("obj['str']").expected(interop1.getStr()).run()
+            .source("map['key1']").expected(map.get("key1")).run()
+            .source("map['m']['a']").expected(map2.get("a")).run()
+            .source("list[0]").expected(list.get(0)).run()
+            .source("list[1]").expected(list.get(1)).run()
+            .source("arr[0]").expected(list.get(0)).run()
+            .source("arr[1]").expected(list.get(1)).run()
+            .source("obj[arr[1]]").expected(interop1.getStr()).run()
+        ;
+
+        header("## Вызов метода",true)
+            .bind("obj",interop1)
+            .source("obj.repeat( 'a', 3 )").expected("aaa").run();
     }
 }

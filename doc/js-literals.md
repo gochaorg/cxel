@@ -6,7 +6,8 @@
 * Числа
 * Булево
 * Строка
-* `undefined`
+* `undefined` - не является ключевым словом, 
+  а является ссылкой на переменную типа `xyz.cofe.cxel.js.Undef`
 * `null`
 
 Все числа, без разницы как они были введены 
@@ -81,69 +82,51 @@
 
 
 ## Строка
-### input source
 
-    'single'
+Соответствие: 
+* лексемма - `xyz.cofe.cxel.tok.StringTok`,
+* AST - `xyz.cofe.cxel.ast.StringAST`,
+* java - `java.lang.String`
 
-### tokens
+Примеры
 
- 1. StringTok "'single'"
-
-### ast tree
-* StringAST "single"
-
-### eval result
-
-    single : class java.lang.String
-
-
-
-### input source
-
-    'double'
-
-### tokens
-
- 1. StringTok "'double'"
-
-### ast tree
-* StringAST "double"
-
-### eval result
-
-    double : class java.lang.String
-
-
+    'single'          
+    "double"
+    
+      js> "encode\"en\\code\'abc"
+    eval> encode"en\code'abc
+    
+      js> 'a\nb\rc\bd\fe\tf\vg'
+    eval> a
+          b
+          de	fg
+          
+      js> '\152\x73'
+    eval> js
+        
+      js> '\u0041'
+    eval> A
+        
+      js> '\u{00041}'
+    eval> A
+        
+      js> 'ab\
+          ef'
+    eval> abef
 
 ## Прочее
-### input source
+### null, undefined
 
     null
 
-### tokens
-
- 1. KeywordTok "null"
-
-### ast tree
-* NullAST null
-
-### eval result
-
-    null
-
-
-
-### input source
+Соответствие: 
+* лексемма - `xyz.cofe.cxel.tok.KeywordTok`,
+* AST - `xyz.cofe.cxel.ast.NullAST`,
+* java - `null`
 
     undefined
 
-### tokens
-
- 1. IdTok "undefined"
-
-### ast tree
-* VarRefAST undefined
-
-### eval result
-
-    undefined : class xyz.cofe.cxel.js.Undef
+Соответствие: 
+* лексемма - `xyz.cofe.cxel.tok.IdTok`,
+* AST - `xyz.cofe.cxel.ast.VarRefAST`,
+* java - `xyz.cofe.cxel.js.Undef`

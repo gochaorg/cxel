@@ -183,6 +183,7 @@ public class StringTok extends CToken {
                 ){
                     Charset cs = Charset.forName("utf-32be");
                     CharBuffer cbuf = cs.decode(ByteBuffer.wrap(new byte[]{
+                        (byte) 0,
                         (byte) (hexDigit(c3)),
                         (byte) (hexDigit(c4)*16 + hexDigit(c5)),
                         (byte) (hexDigit(c6)*16 + hexDigit(c7))

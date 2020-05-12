@@ -68,6 +68,12 @@ public class LexerTest {
     }
 
     @Test
+    public void str(){
+        List<? extends CToken> toks = new Lexer().tokens("'\\u{00041}'");
+        System.out.println(toks);
+    }
+
+    @Test
     public void numSuffixes(){
         List<? extends CToken> toks = new Lexer().tokens("1 2b 3s 4i 5l 6n 7w 8.0f 9.1d 10.0w 11.0n");
 
