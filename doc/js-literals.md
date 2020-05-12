@@ -115,7 +115,7 @@
     eval> abef
 
 ## Прочее
-### null, undefined
+### null
 
     null
 
@@ -123,6 +123,8 @@
 * лексемма - `xyz.cofe.cxel.tok.KeywordTok`,
 * AST - `xyz.cofe.cxel.ast.NullAST`,
 * java - `null`
+
+### undefined
 
     undefined
 
