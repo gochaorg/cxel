@@ -1,21 +1,21 @@
 package xyz.cofe.cxel.js;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.ASTDump;
 import xyz.cofe.cxel.ast.AST;
 import xyz.cofe.text.tparse.CToken;
 import xyz.cofe.text.Text;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
  * Примеры для демострации
  */
+@SuppressWarnings({ "SimplifiableJUnitAssertion", "rawtypes" })
 public class JsEvalSampleTest {
     public static class Interop1 {
         private String str;
@@ -50,8 +50,19 @@ public class JsEvalSampleTest {
         private final Queue<Runnable> postRunQueue = new LinkedList<>();
 
         private JsEvaluator evaluator;
-        public JsEvaluator evaluator(){ return evaluator; }
+        public JsEvaluator evaluator(){
+            if( evaluator==null ){
+                evaluator = new JsEvaluator();
+            }
+            return evaluator;
+        }
         public Testing evaluator(JsEvaluator ev){ evaluator=ev; return this; }
+
+        public Testing bind(String varName, Object varValue){
+            if( varName==null )throw new IllegalArgumentException("varName==null");
+            evaluator().context().bind(varName, varValue);
+            return this;
+        }
 
         private String header;
         private String header(){ return header; }
@@ -133,7 +144,8 @@ public class JsEvalSampleTest {
                 System.out.println(Text.indent("    ",source));
             }
 
-            JsEvaluator evaltr = evaluator==null ? new JsEvaluator() : evaluator;
+            JsEvaluator evaltr = evaluator();
+            evaltr = evaltr==null ? new JsEvaluator() : evaltr;
 
             List<? extends CToken> tokens = evaltr.tokens(source,0);
             if( tokens==null )throw new IllegalStateException("return null tokens");
@@ -232,5 +244,83 @@ public class JsEvalSampleTest {
         header("## Прочее",true)
             .source("null").expected(null).run()
             .source("undefined").expected(Undef.instance).run();
+    }
+
+    @Test
+    public void atom(){
+        header("## Унарные операции", true)
+            .source("-1").expected(-1.0).run()
+            .source("+(1+2)").expected(3.0).run()
+            .source("! true").expected(false).run()
+        .header("## Ссылки на переменные",true)
+            .bind("a",10).bind("b",12)
+            .source("a+b").expected(22.0).run()
+        .header("## Списки")
+            .source("[ a, b, a+b ]").test( ev -> {
+                assertTrue( ev!=null );
+                assertTrue( ev instanceof List );
+
+                List lst = (List)ev;
+                assertTrue( lst.size()==3 );
+                assertTrue( lst.get(0)!=null );
+                assertTrue( lst.get(0).equals(10) );
+                assertTrue( lst.get(1)!=null );
+                assertTrue( lst.get(1).equals(12) );
+                assertTrue( lst.get(2)!=null );
+                assertTrue( lst.get(2).equals(22.0) );
+        }).run()
+        .header("## Карты")
+            .source("{ a: a, b: 12, 'c': 23, true: 34, (undefined): 45+5, undefined:333, (1+2): 56, l:[ 0, 1 ], m: {x:7} }")
+            .test( ev->{
+                assertTrue(ev!=null);
+                assertTrue(ev instanceof Map);
+
+                Map m = (Map)ev;
+                assertTrue(m.size()==9);
+                assertTrue(m.containsKey("a"));
+                assertTrue(m.get("a")!=null);
+                assertTrue(m.get("a").equals(10));
+
+                assertTrue(m.containsKey("b"));
+                assertTrue(m.get("b")!=null);
+                assertTrue(m.get("b").equals(12.0));
+
+                assertTrue(m.containsKey("c"));
+                assertTrue(m.get("c")!=null);
+                assertTrue(m.get("c").equals(23.0));
+
+                assertTrue(m.containsKey(true));
+                assertTrue(m.get(true)!=null);
+                assertTrue(m.get(true).equals(34.0));
+
+                assertTrue(m.containsKey(Undef.instance));
+                assertTrue(m.get(Undef.instance)!=null);
+                assertTrue(m.get(Undef.instance).equals(50.0));
+
+                assertTrue(m.containsKey("undefined"));
+                assertTrue(m.get("undefined")!=null);
+                assertTrue(m.get("undefined").equals(333.0));
+
+                assertTrue(m.containsKey(3.0));
+                assertTrue(m.get(3.0)!=null);
+                assertTrue(m.get(3.0).equals(56.0));
+
+                assertTrue(m.containsKey("l"));
+                assertTrue(m.get("l")!=null);
+                assertTrue(m.get("l") instanceof List);
+                assertTrue(((List)m.get("l")).size()==2);
+                assertTrue(((List)m.get("l")).get(0)!=null);
+                assertTrue(((List)m.get("l")).get(0).equals(0.0));
+                assertTrue(((List)m.get("l")).get(1)!=null);
+                assertTrue(((List)m.get("l")).get(1).equals(1.0));
+
+                assertTrue(m.containsKey("m"));
+                assertTrue(m.get("m")!=null);
+                assertTrue(m.get("m")instanceof Map);
+                assertTrue(((Map)m.get("m")).size()==1);
+                assertTrue(((Map)m.get("m")).containsKey("x"));
+                assertTrue(((Map)m.get("m")).get("x")!=null);
+                assertTrue(((Map)m.get("m")).get("x").equals(7.0));
+            }).run();
     }
 }

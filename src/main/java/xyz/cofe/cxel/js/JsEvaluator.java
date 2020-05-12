@@ -251,6 +251,7 @@ public class JsEvaluator {
         context.bind("NaN", Double.NaN);
 
         context.bindStaticMethods(UnaryMinusOperator.class);
+        context.bindStaticMethods(UnaryPlusOperator.class);
         context.bindStaticMethods(NotOperator.class);
         context.bindStaticMethods(OrOperator.class);
         context.bindStaticMethods(AndOperator.class);
