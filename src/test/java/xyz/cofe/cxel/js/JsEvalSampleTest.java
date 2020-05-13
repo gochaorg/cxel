@@ -60,6 +60,11 @@ public class JsEvalSampleTest {
                 ev->ev.context().bind("o",interop)
             ).eval("o.repeat('aB',2)")
         );
+
+        evaluator.context().bindFn( "concat", String.class, String.class, String.class, (a,b)->a+b );
+        System.out.println(
+            evaluator.eval("concat( 'ab', 'cd' )")
+        );
     }
 
     //region тестирование и вывод в формате markdown
@@ -416,5 +421,26 @@ public class JsEvalSampleTest {
             .source("'2'+4").expected("24").run()
             .source("null + null").expected(0.0).run()
         ;
+    }
+
+    @Test
+    public void overrideOp(){
+        Interop1 interop1 = new Interop1();
+
+        JsEvaluator jsEvaluator = new JsEvaluator();
+        jsEvaluator.context().bindFn("*",
+            String.class, Double.class, String.class,
+            (str,cnt)->interop1.repeat(str,cnt.intValue())
+        );
+
+        jsEvaluator.context().bindFn("*",
+            Double.class, Double.class, Double.class,
+            (a,b)-> a==1.0 && b==1.0 ? 123.0 : a*b
+        );
+
+        header("## Переопределение поведения операторов",true).
+            evaluator(jsEvaluator).
+            source("1 * 1").expected(123.0).run().
+            source("'str' * 3").expected("strstrstr").run();configureContext
     }
 }
