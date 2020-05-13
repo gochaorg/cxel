@@ -144,28 +144,28 @@ public class AddOperator extends BaseOperator {
     public static Object add( Object left, Double right ){
         if( right==null )throw new IllegalArgumentException("right==null");
         if( left==null )return add( 0.0, right );
-        return add( OBJECT_LITERAL, right.toString() );
+        return add( OBJECT_LITERAL, toString(right) );
     }
 
     @FnName("+")
     public static Object add( List left, Double right ){
         if( left==null )throw new IllegalArgumentException("left==null");
         if( right==null )throw new IllegalArgumentException("right==null");
-        return add( OBJECT_LITERAL, right.toString() );
+        return add( OBJECT_LITERAL, toString(right) );
     }
 
     @FnName("+")
     public static Object add( Double left, Object right ){
         if( left==null )throw new IllegalArgumentException("left==null");
         if( right==null )return add( left, 0.0 );
-        return add( left.toString(),OBJECT_LITERAL );
+        return add( toString(left),OBJECT_LITERAL );
     }
 
     @FnName("+")
     public static Object add( Double left, List right ){
         if( left==null )throw new IllegalArgumentException("left==null");
         if( right==null )throw new IllegalArgumentException("right==null");
-        return add( left.toString(), toString((List) right) );
+        return add( toString(left), toString((List) right) );
     }
 
     @FnName("+")
@@ -180,7 +180,7 @@ public class AddOperator extends BaseOperator {
     @FnName("+")
     public static Object add( Object left, Object right ){
         if( left==null ){
-            if( right==null )return 0;
+            if( right==null )return 0.0;
             return "null"+OBJECT_LITERAL;
         }else{
             if( right==null )return OBJECT_LITERAL+"null";
@@ -199,14 +199,14 @@ public class AddOperator extends BaseOperator {
     public static String add( String left, Double right ){
         if( left==null )throw new IllegalArgumentException("left==null");
         if( right==null )throw new IllegalArgumentException("right==null");
-        return left + right.toString();
+        return left + toString(right);
     }
 
     @FnName("+")
     public static String add( Double left, String right ){
         if( left==null )throw new IllegalArgumentException("left==null");
         if( right==null )throw new IllegalArgumentException("right==null");
-        return left.toString() + right;
+        return toString(left) + right;
     }
 
     @FnName("+")

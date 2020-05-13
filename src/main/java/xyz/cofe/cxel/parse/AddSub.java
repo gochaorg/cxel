@@ -8,7 +8,7 @@ import xyz.cofe.cxel.tok.StringTok;
 import xyz.cofe.text.tparse.GR;
 import xyz.cofe.text.tparse.TPointer;
 
-import static xyz.cofe.cxel.Parser.atomic;
+import static xyz.cofe.cxel.parse.BaseParser.atomic;
 
 public interface AddSub extends Atomic, Expression {
     public default GR<TPointer, AST> addSub(){

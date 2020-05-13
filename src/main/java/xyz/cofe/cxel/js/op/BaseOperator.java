@@ -75,6 +75,17 @@ public class BaseOperator {
         throw new UndefinedBehaviorError();
     }
 
+    public static String toString( double x ){
+        if( isInteger(x) ){
+            return Long.toString( (long)x );
+        }
+        return Double.toString(x);
+    }
+
+    public static boolean isInteger( double x ){
+        return x==Math.floor(x) && !Double.isInfinite(x);
+    }
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private static String toString_itm( Object itm, List visited ){
         if( itm==null )return "";
