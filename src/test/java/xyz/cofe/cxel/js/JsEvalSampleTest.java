@@ -441,6 +441,6 @@ public class JsEvalSampleTest {
         header("## Переопределение поведения операторов",true).
             evaluator(jsEvaluator).
             source("1 * 1").expected(123.0).run().
-            source("'str' * 3").expected("strstrstr").run();configureContext
+            source("'str' * 3").expected("strstrstr").run();
     }
 }
