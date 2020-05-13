@@ -54,6 +54,12 @@ public class JsEvalSampleTest {
 
         Object res = evaluator.eval("i.print( a + b + i.str )");
         System.out.println("result "+res);
+
+        System.out.println(
+            new JsEvaluator().configure(
+                ev->ev.context().bind("o",interop)
+            ).eval("o.repeat('aB',2)")
+        );
     }
 
     //region тестирование и вывод в формате markdown
@@ -215,16 +221,16 @@ public class JsEvalSampleTest {
     public Testing source( String source ){
         return new Testing()
             .source(source)
-            .sourceTitle("### input source\n")
+            //.sourceTitle("### input source\n")
             .sourceShow(true)
-            .tokensTitle("\n### tokens\n")
+            .tokensTitle("\n**Лексемы**\n")
             .tokensShow(true)
-            .astTitle("\n### ast tree")
+            .astTitle("\n**AST дерево**\n")
             .astShow(true)
-            .evalTitle("\n### eval result\n")
+            .evalTitle("\n**интерпретация**\n")
             .eval(true)
             .resultShow(true)
-            .resultTitle("\n### eval result\n")
+            .resultTitle("\n**интерпретация**\n")
             .footprint("\n\n")
             ;
     }
@@ -382,5 +388,33 @@ public class JsEvalSampleTest {
         header("## Вызов метода",true)
             .bind("obj",interop1)
             .source("obj.repeat( 'a', 3 )").expected("aaa").run();
+    }
+
+    @Test
+    public void mathOp(){
+        header("## Математические операции\n",true)
+            .source("1 + 1").expected(2.0).run()
+            .source("1 - 1").expected(0.0).run()
+            .source("2 * 3").expected(6.0).run()
+            .source("12 / 3").expected(4.0).run()
+            .source("10 % 3").expected(1.0).run()
+            .source("3 ** 3").expected(27.0).run()
+            .source("1 + 2 * 4").expected(9.0).run()
+            .source("(1 + 2) * 4").expected(12.0).run()
+            .source("12 / 3 * 4").expected(16.0).run()
+            .source("12 / (3 * 4)").expected(1.0).run()
+            .source("12 / (3 * 4)").expected(1.0).run()
+            .source("2 * 3 ** 3").expected(54.0).run()
+            .source("(2 * 3) ** 3").expected(216.0).run();
+
+        header("## Мат операции над не числовыми данными\n",true)
+            .source("'abc' + 'def'").expected("abcdef").run()
+            .source("true + false").expected(1.0).run()
+            .source("true + null").expected(1.0).run()
+            .source("true + NaN").test(v-> assertTrue(v instanceof Double && Double.isNaN((Double)v)) ).run()
+            .source("10 + '2'").expected("102").run()
+            .source("'2'+4").expected("24").run()
+            .source("null + null").expected(0.0).run()
+        ;
     }
 }
