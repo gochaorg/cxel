@@ -8,50 +8,94 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * Вариант вызова метода
+ * Вариант вызова метода/функции
  */
 public class Call
     implements
         PreparedCall, ArgsCasing, InvariantArgs, PrimitiveCastArgs, CastLooseDataArgs,
         CovariantArgs, ImplicitArgs, ParameterCount
 {
+    //region Конструкторы
+    /**
+     * Конструктор по умолчанию
+     */
     public Call(){
     }
 
+    /**
+     * Конструктор
+     * @param meth вызываемая функция
+     */
     public Call(TypedFn meth){
         this.fn = meth;
     }
 
+    /**
+     * Конфигурирование экземпляра
+     * @param conf конфигурация
+     * @return self ссылка
+     */
     public Call configure(Consumer<Call> conf){
         if( conf != null ) conf.accept(this);
         return this;
     }
-
+    //endregion
+    //region inputArgs : List<Object> - Входящие аргументы
+    /**
+     * Входящие аргументы
+     */
     protected List<Object> inputArgs;
 
+    /**
+     * Возвращает входящие аргументы
+     * @return входящие аргументы
+     */
     public List<Object> getInputArgs() {
         return inputArgs;
     }
 
+    /**
+     * Указывает входящие аргументы
+     * @param inputArgs входящие аргументы
+     */
     public void setInputArgs(List<Object> inputArgs) {
         this.inputArgs = inputArgs;
     }
-
+    //endregion
     //region method : TypedFn
+
+    /**
+     * Вызываемая функция
+     */
     protected TypedFn fn;
 
+    /**
+     * Возвращает вызываемую функцию
+     * @return вызываемая функция
+     */
     public TypedFn getFn(){
         return fn;
     }
 
+    /**
+     * Указывает вызываемую функцию
+     * @param fn вызываемая функция
+     */
     public void setFn(TypedFn fn){
         this.fn = fn;
     }
     //endregion
 
     //region args : List<ArgPass>
+    /**
+     * Возвращает список передаваемых аргументов
+     */
     protected List<ArgPass> args;
 
+    /**
+     * Возвращает список передаваемых аргументов
+     * @return список передаваемых аргументов
+     */
     public List<ArgPass> getArgs(){
         if( args != null ){
             return args;
@@ -60,24 +104,27 @@ public class Call
         return args;
     }
 
+    /**
+     * Указывает список передаваемых аргументов
+     * @param args список передаваемых аргументов
+     */
     public void setArgs( List<ArgPass> args ){
         this.args = args;
     }
     //endregion
 
     //region callable() : boolean
+
+    /**
+     * Возвращает признак что можно сделать вызов функции {@link #call()}
+     * @return true - допускается при заданных аргументах вызвать {@link #call()}, false - не допускается
+     */
     public boolean callable(){
         List<ArgPass> args = getArgs();
         if( args == null ) return false;
 
         TypedFn method = getFn();
         if( method == null ) return false;
-
-//        Object inst = getInstance();
-//        boolean methIsStatic = (method.getModifiers() & Modifier.STATIC) == Modifier.STATIC;
-//        if( !methIsStatic && inst == null ){
-//            return false;
-//        }
 
         List<ArgPass> nonNullArgs = args.stream().filter(Objects::nonNull).collect(Collectors.toList());
         if( nonNullArgs.stream().anyMatch(m -> !m.isPassable()) ) return false;
@@ -93,6 +140,11 @@ public class Call
     //endregion
 
     //region call()
+
+    /**
+     * Вызов функии с заданными аргументами
+     * @return результат вызова
+     */
     @Override
     public Object call(){
         if( !callable() ) throw new EvalError("can't calling");

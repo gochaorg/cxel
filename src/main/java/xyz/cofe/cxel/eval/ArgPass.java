@@ -2,6 +2,8 @@ package xyz.cofe.cxel.eval;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Передача аргумента в функцию
@@ -22,7 +24,7 @@ public class ArgPass {
         passable = sample.passable;
         index = sample.index;
         inputType = sample.inputType;
-        arg = sample.arg;
+        passedArgument = sample.passedArgument;
         invarant = sample.invarant;
         covariant = sample.covariant;
         implicit = sample.implicit;
@@ -35,6 +37,11 @@ public class ArgPass {
         return new ArgPass(this);
     }
 
+    /**
+     * Настройка экземпляра
+     * @param conf конфигурация
+     * @return self ссылка
+     */
     protected ArgPass configure( Consumer<ArgPass> conf ){
         if( conf!=null ){
             conf.accept(this);
@@ -42,6 +49,11 @@ public class ArgPass {
         return this;
     }
 
+    /**
+     * Клонирование и настройка клона
+     * @param conf конфигурация
+     * @return клон
+     */
     protected ArgPass cloneAndConf( Consumer<ArgPass> conf ){
         return clone().configure(conf);
     }
@@ -60,7 +72,7 @@ public class ArgPass {
             c.covariant = false;
             c.invarant = false;
             c.inputType = type;
-            c.arg = value;
+            c.passedArgument = (i)->value;
             c.index = idx;
         });
     }
@@ -79,7 +91,7 @@ public class ArgPass {
             c.covariant = false;
             c.invarant = true;
             c.inputType = type;
-            c.arg = value;
+            c.passedArgument = (i)->value;
             c.index = idx;
         });
     }
@@ -98,7 +110,7 @@ public class ArgPass {
             c.covariant = true;
             c.invarant = false;
             c.inputType = type;
-            c.arg = value;
+            c.passedArgument = (i)->value;
             c.index = idx;
         });
     }
@@ -117,7 +129,7 @@ public class ArgPass {
             c.covariant = false;
             c.invarant = false;
             c.inputType = type;
-            c.arg = value;
+            c.passedArgument = (i)->value;
             c.index = idx;
         });
     }
@@ -164,14 +176,17 @@ public class ArgPass {
     }
     //endregion
     //region arg : Object - аргумент
-    protected Object arg;
+    protected Function<ArgPass,Object> passedArgument;
+
+    //protected Object arg;
 
     /**
      * Входной аргумент
      * @return аргумент
      */
     public Object getArg(){
-        return arg;
+        Function<ArgPass,Object> passedArgument = this.passedArgument;
+        return passedArgument!=null ? passedArgument.apply(this) : null;
     }
 
     /**
@@ -180,7 +195,7 @@ public class ArgPass {
      * @return клон с новыми параметрами
      */
     public ArgPass arg( Object arg  ){
-        return cloneAndConf( c->c.arg=arg );
+        return cloneAndConf( c->c.passedArgument=(i)->arg );
     }
     //endregion
     //region passable : boolean - Аргумент может быть передан, функция с данным аргументом может быть вызвана
