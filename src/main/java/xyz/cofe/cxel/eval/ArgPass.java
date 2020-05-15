@@ -1,5 +1,8 @@
 package xyz.cofe.cxel.eval;
 
+import xyz.cofe.cxel.EvalError;
+
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -9,10 +12,11 @@ import java.util.function.Supplier;
  * Передача аргумента в функцию
  */
 public class ArgPass {
+    //region конструктор и клонирование
     /**
      * Конструктор по умолчанию
      */
-    public ArgPass(){
+    protected ArgPass(){
     }
 
     /**
@@ -30,6 +34,8 @@ public class ArgPass {
         implicit = sample.implicit;
         castLooseData = sample.castLooseData;
         primitiveCast = sample.primitiveCast;
+        call = sample.call;
+        cacheable = sample.cacheable;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -57,7 +63,8 @@ public class ArgPass {
     protected ArgPass cloneAndConf( Consumer<ArgPass> conf ){
         return clone().configure(conf);
     }
-
+    //endregion
+    //region конструирование
     /**
      * Аргумент не может быть передан
      * @param idx индекс аргумента
@@ -97,6 +104,25 @@ public class ArgPass {
     }
 
     /**
+     * Аргумент может быть передан без какиз либо преобрахований
+     * @param idx индекс аргумента
+     * @param type входящий тип
+     * @param fnvalue значение аргумента
+     * @return Форма передачи аргмента
+     */
+    public static ArgPass invariant( int idx, Class<?> type, Function<ArgPass,Object> fnvalue ){
+        return new ArgPass().configure( c -> {
+            c.passable = true;
+            c.implicit = false;
+            c.covariant = false;
+            c.invarant = true;
+            c.inputType = type;
+            c.passedArgument = fnvalue;
+            c.index = idx;
+        });
+    }
+
+    /**
      * Аргумент может быть передан с использованием коваринтного приведения типа
      * @param idx индекс аргумента
      * @param type входящий тип
@@ -111,6 +137,25 @@ public class ArgPass {
             c.invarant = false;
             c.inputType = type;
             c.passedArgument = (i)->value;
+            c.index = idx;
+        });
+    }
+
+    /**
+     * Аргумент может быть передан с использованием коваринтного приведения типа
+     * @param idx индекс аргумента
+     * @param type входящий тип
+     * @param value значение аргумента
+     * @return Форма передачи аргмента
+     */
+    public static ArgPass covar( int idx, Class<?> type, Function<ArgPass,Object> value ){
+        return new ArgPass().configure( c -> {
+            c.passable = true;
+            c.implicit = false;
+            c.covariant = true;
+            c.invarant = false;
+            c.inputType = type;
+            c.passedArgument = value;
             c.index = idx;
         });
     }
@@ -134,6 +179,66 @@ public class ArgPass {
         });
     }
 
+    /**
+     * Аргумент может быть передан с использованием неявного преобразования
+     * @param idx индекс аргумента
+     * @param type входящий тип
+     * @param value значение аргумента
+     * @return Форма передачи аргмента
+     */
+    public static ArgPass implicit( int idx, Class<?> type, Function<ArgPass,Object> value ){
+        return new ArgPass().configure( c -> {
+            c.passable = true;
+            c.implicit = true;
+            c.covariant = false;
+            c.invarant = false;
+            c.inputType = type;
+            c.passedArgument = value;
+            c.index = idx;
+        });
+    }
+    //endregion
+    //region call : Call - объект вызова
+    protected Call call;
+
+    /**
+     * Возвращает объект вызова
+     * @return объект вызова
+     */
+    public Call call(){ return call; }
+
+    /**
+     * Клонирует и указывает объект вызова
+     * @param ncall объект вызова
+     * @return клон
+     */
+    public ArgPass call( Call ncall ){
+        return cloneAndConf( c->c.call = ncall );
+    }
+    //endregion
+
+    /**
+     * Возвращает входное значение аргумента вызова.
+     * Равноценно вызову <code>self.call().getInputArgs().get( self.index() )</code>.
+     * @return входное значение
+     */
+    public Object inputValue(){
+        Call call = this.call();
+        if( call==null )throw new EvalError("call object not defined");
+
+        List<Object> inputArgs = call.getInputArgs();
+        if( inputArgs==null )throw new EvalError("input args not defined");
+
+        int idx = index();
+        if( idx<0 )throw new EvalError("argument index(="+idx+")<0");
+
+        if( idx>=inputArgs.size() ){
+            throw new EvalError("argument index(="+idx+")>=inputArgs.size()(="+inputArgs.size()+")");
+        }
+
+        return inputArgs.get(idx);
+    }
+
     //region index - Индекс аргумента
     protected int index;
 
@@ -141,7 +246,7 @@ public class ArgPass {
      * Индекс аргумента
      * @return индекс
      */
-    public int getIndex(){ return index; }
+    public int index(){ return index; }
 
     /**
      * Создает клон и указывает индекс аргумента
@@ -162,7 +267,7 @@ public class ArgPass {
      * Возвращает Принимаемый тип
      * @return Принимаемый тип
      */
-    public Class<?> getInputType(){
+    public Class<?> inputType(){
         return inputType;
     }
 
@@ -178,13 +283,11 @@ public class ArgPass {
     //region arg : Object - аргумент
     protected Function<ArgPass,Object> passedArgument;
 
-    //protected Object arg;
-
     /**
      * Входной аргумент
      * @return аргумент
      */
-    public Object getArg(){
+    public Object arg(){
         Function<ArgPass,Object> passedArgument = this.passedArgument;
         return passedArgument!=null ? passedArgument.apply(this) : null;
     }
@@ -196,6 +299,15 @@ public class ArgPass {
      */
     public ArgPass arg( Object arg  ){
         return cloneAndConf( c->c.passedArgument=(i)->arg );
+    }
+
+    /**
+     * Создает клон и указывает аргумент
+     * @param arg аргумент
+     * @return клон с новыми параметрами
+     */
+    public ArgPass arg( Function<ArgPass,Object> arg  ){
+        return cloneAndConf( c->c.passedArgument=arg );
     }
     //endregion
     //region passable : boolean - Аргумент может быть передан, функция с данным аргументом может быть вызвана
@@ -235,6 +347,26 @@ public class ArgPass {
      */
     public ArgPass unpassable(){
         return cloneAndConf( c->c.passable = false );
+    }
+    //endregion
+    //region cacheable : boolean - true - можно использовать без пересоздания {@link Call}
+    protected boolean cacheable = false;
+
+    /**
+     * Возвращает факт возможности кэширования без перестройки {@link Call}
+     * @return true - можно использовать без пересоздания {@link Call}
+     */
+    public boolean isCacheable(){
+        return cacheable;
+    }
+
+    /**
+     * Клонирует и указывет факт возможности кэширования без перестройки {@link Call}
+     * @param cacheAllowed true - можно использовать без пересоздания {@link Call}
+     * @return Клон
+     */
+    public ArgPass cacheable( boolean cacheAllowed ){
+        return cloneAndConf( c->c.cacheable = cacheAllowed );
     }
     //endregion
     //region invarant : boolean - Аргумент передается без изменений
