@@ -1,6 +1,5 @@
 package xyz.cofe.cxel.eval;
 
-import xyz.cofe.cxel.EvalError;
 import xyz.cofe.iter.Eterable;
 
 import java.lang.reflect.Type;
@@ -68,43 +67,49 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                     Class<?> p = (Class<?>) params[pi];
                     if( pi>=args.size() ){
                         // Значение параметра не определено
-                        rcall.getArgs().add( ArgPass.unpassable(pi, p, null));
+                        rcall = rcall.addArg( ArgPass.unpassable(pi, p, null));
                     }else{
-                        Class<?> pt = (Class<?>) p;
-
                         Object arg = args.get(pi);
                         Class<?> at = arg!=null ? arg.getClass() : Object.class;
-                        if( arg==null && pt.isPrimitive() ){
+                        if( arg==null && p.isPrimitive() ){
                             // Значение параметра не может быть null
-                            rcall.getArgs().add( ArgPass.unpassable(pi,pt,null) );
+                            rcall = rcall.addArg( ArgPass.unpassable(pi,p,null) );
                         }else {
-                            if( pt.equals(at) ){
+                            if( p.equals(at) ){
                                 // Полное совпадение типа
-                                rcall.getArgs().add( ArgPass.invariant(pi,pt,arg) );
-                            }else if( pt.isAssignableFrom(at) ){
+                                rcall = rcall.addArg( ArgPass.invariant(pi,p,ArgPass::inputValue));
+                            }else if( p.isAssignableFrom(at) ){
                                 // Коваринтное совпадение типов
-                                rcall.getArgs().add( ArgPass.covar(pi,pt,arg) );
+                                rcall = rcall.addArg( ArgPass.covar(pi,p,ArgPass::inputValue));
                             }else{
-                                if( NumCast.isPrimitiveNumber(pt) && arg instanceof Number ){
+                                if( NumCast.isPrimitiveNumber(p) && arg instanceof Number ){
                                     // Парамтер представлен примитивным числом и передано число
-                                    NumCast ncast = NumCast.tryCast(pt,(Number)arg);
+                                    NumCast ncast = NumCast.tryCast(p,(Number)arg);
                                     if( ncast!=null ){
+                                        //ArgPass argPass = ArgPass.invariant(pi, p,ncast.targetValue );
+                                        ArgPass argPass = ArgPass.invariant(pi,p,apass->
+                                            NumCast.tryCast(p,(Number)apass.inputValue()).targetValue
+                                        );
+
                                         if( ncast.sameType ){
-                                            rcall.getArgs().add(
-                                                    ArgPass.invariant(pi, pt, ncast.targetValue)
-                                                            .primitiveCast(true)
-                                                            .castLooseData(false)
+                                            rcall = rcall.addArg(
+                                                argPass
+                                                    .primitiveCast(true)
+                                                    .castLooseData(false)
                                             );
                                         }else {
-                                            rcall.getArgs().add(
-                                                    ArgPass.covar(pi, pt, ncast.targetValue)
-                                                            .primitiveCast(true)
-                                                            .castLooseData(ncast.looseData)
+                                            rcall = rcall.addArg(
+                                                argPass
+                                                    .primitiveCast(true)
+                                                    .castLooseData(ncast.looseData)
                                             );
                                         }
                                     }else {
-                                        Object v = pt.cast(arg);
-                                        rcall.getArgs().add(ArgPass.covar(pi, pt, v));
+                                        //Object v = p.cast(arg);
+                                        //rcall = rcall.addArg(ArgPass.covar(pi, p, v));
+                                        rcall = rcall.addArg( ArgPass.covar(
+                                            pi, p, apass -> p.cast(apass.inputValue())
+                                        ));
                                     }
                                 }else{
                                     // Нет совместимых вариантов
@@ -115,7 +120,7 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                         Optional<Object> oImplicitCasts = context.tryRead(IMPLICIT);
                                         if( oImplicitCasts!=null && oImplicitCasts.isPresent() && oImplicitCasts.get() instanceof StaticMethods ){
                                             StaticMethods sm = (StaticMethods)oImplicitCasts.get();
-                                            implicitCasts = sm.sameRetAndArgs(pt, at);
+                                            implicitCasts = sm.sameRetAndArgs(p, at);
                                         }
                                     }
 
@@ -123,13 +128,20 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                         if( implicitCasts.size()==1 ) {
                                             // Найдено одно и единственное возможное имплицитное преобразование
                                             TypedFn implctCaster = implicitCasts.first().get();
-                                            Object castedValue = implctCaster.call(new Object[]{arg});
-                                            rcall.getArgs().add(ArgPass.implicit(pi, pt, castedValue));
+
+                                            //Object castedValue = implctCaster.call(new Object[]{arg});
+                                            //rcall = rcall.addArg(ArgPass.implicit(pi, p, castedValue));
+
+                                            Object[] implArgs = new Object[1];
+                                            rcall = rcall.addArg(ArgPass.implicit(pi, p, apass->{
+                                                implArgs[0] = apass.inputValue();
+                                                return implctCaster.call(implArgs);
+                                            }));
                                         }else{
                                             if( implicitCasts.size()==0 ) {
                                                 // Подходящих имплицитных преобразований не найдено
                                                 // Нет совместимых вариантов
-                                                rcall.getArgs().add(ArgPass.unpassable(pi, pt, arg));
+                                                rcall = rcall.addArg(ArgPass.unpassable(pi, p, arg));
                                             }else{
                                                 System.err.println("found multiple implicit argument cast");
                                                 int idx=-1;
@@ -142,7 +154,7 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                     }else {
                                         // Подходящих имплицитных преобразований не найдено
                                         // Нет совместимых вариантов
-                                        rcall.getArgs().add(ArgPass.unpassable(pi, pt, arg));
+                                        rcall = rcall.addArg(ArgPass.unpassable(pi, p, arg));
                                     }
                                 }
                             }
