@@ -23,6 +23,17 @@ public class Call
     }
 
     /**
+     * Конструктор копирования
+     * @param sample образец для копирования
+     */
+    public Call(Call sample){
+        if( sample==null )throw new IllegalArgumentException("sample==null");
+        this.args.addAll(sample.args);
+        this.fn = sample.fn;
+        this.inputArgs = sample.inputArgs;
+    }
+
+    /**
      * Конструктор
      * @param meth вызываемая функция
      */
@@ -38,6 +49,15 @@ public class Call
     public Call configure(Consumer<Call> conf){
         if( conf != null ) conf.accept(this);
         return this;
+    }
+
+    /**
+     * Клонирование
+     * @return клон
+     */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public Call clone(){
+        return new Call(this);
     }
     //endregion
     //region inputArgs : List<Object> - Входящие аргументы
@@ -79,49 +99,71 @@ public class Call
 
     /**
      * Указывает вызываемую функцию
-     * @param fn вызываемая функция
+     * @param newfn вызываемая функция
      */
-    public void setFn(TypedFn fn){
-        this.fn = fn;
+    public Call fn(TypedFn newfn){
+        return clone().configure( c->c.fn = newfn );
     }
     //endregion
-
-    //region args : List<ArgPass>
+    //region аргументы вызова
     /**
      * Возвращает список передаваемых аргументов
      */
-    protected List<ArgPass> args;
+    protected final List<ArgPass> args = new ArrayList<>();
 
     /**
-     * Возвращает список передаваемых аргументов
-     * @return список передаваемых аргументов
+     * Возвращает кол-во аргументов
+     * @return кол-во аргументов
      */
-    public List<ArgPass> getArgs(){
-        if( args != null ){
-            return args;
-        }
-        args = new ArrayList<>();
-        return args;
+    public int getArgsCount(){ return args.size(); }
+
+    /**
+     * Возвращает аргумент по индексу
+     * @param argIndex индекс аргумента
+     * @return аргумент
+     */
+    public ArgPass getArg( int argIndex ){
+        return args.get(argIndex);
     }
 
     /**
-     * Указывает список передаваемых аргументов
-     * @param args список передаваемых аргументов
+     * Клонирует и добавляет аргумент
+     * @param arg аргумент
+     * @return клон
      */
-    public void setArgs( List<ArgPass> args ){
-        this.args = args;
+    public Call addArg( ArgPass arg ){
+        if( arg==null )throw new IllegalArgumentException("arg==null");
+        return clone().configure( c->{
+            c.args.add(arg.call(this));
+        });
+    }
+
+    /**
+     * Клонирует и удаляет аргумент
+     * @param idx индекс аргумента
+     * @return клон
+     */
+    public Call removeArg( int idx ){
+        return clone().configure( c->c.args.remove(idx) );
+    }
+
+    /**
+     * Клонирует и указывает значение аргумента
+     * @param idx индекс аргумента
+     * @param arg ардгумент
+     * @return клон
+     */
+    public Call setArg( int idx, ArgPass arg ){
+        return clone().configure( c->c.args.set(idx,arg) );
     }
     //endregion
-
-    //region callable() : boolean
-
+    //region callable() : boolean - проверка возможности вызова
     /**
-     * Возвращает признак что можно сделать вызов функции {@link #call()}
-     * @return true - допускается при заданных аргументах вызвать {@link #call()}, false - не допускается
+     * Возвращает признак что можно сделать вызов функции {@link #call(List)}
+     * @return true - допускается при заданных аргументах вызвать {@link #call(List)}, false - не допускается
      */
     public boolean callable(){
-        List<ArgPass> args = getArgs();
-        if( args == null ) return false;
+        List<ArgPass> args = this.args;
 
         TypedFn method = getFn();
         if( method == null ) return false;
@@ -132,34 +174,47 @@ public class Call
         Map<Integer, Boolean> argPassable = new LinkedHashMap<>();
         for(int i = 0; i < method.getParameterTypes().length; i++ ) argPassable.put(i, false);
         nonNullArgs.forEach(m -> {
-            argPassable.put(m.getIndex(), m.isPassable());
+            argPassable.put(m.index(), m.isPassable());
         });
 
         return argPassable.values().stream().allMatch(e -> e);
     }
     //endregion
-
-    //region call()
-
+    //region call( List ) : object - вызов метода/функции
     /**
      * Вызов функии с заданными аргументами
      * @return результат вызова
      */
     @Override
-    public Object call(){
+    public Object call( List<Object> inputArgs ){
+        this.inputArgs = inputArgs;
         if( !callable() ) throw new EvalError("can't calling");
 
         TypedFn f = getFn();
         Object[] params = new Object[f.getParameterTypes().length];
 
-        getArgs().stream().filter(Objects::nonNull).forEach(pa -> {
-            if( pa.getIndex() >= 0 && pa.getIndex() < params.length )
-                params[pa.getIndex()] = pa.getArg();
+        args.stream().filter(Objects::nonNull).forEach(pa -> {
+            if( pa.index() >= 0 && pa.index() < params.length )
+                params[pa.index()] = pa.arg();
         });
 
         return f.call(params);
     }
     //endregion
+
+    //region характеристики
+    protected Boolean cacheable;
+
+    /**
+     * Возвращает факт возможности повторного вызова
+     * с новыми аргментами без перестройки нового {@link Call}
+     * @return true - можно повторно вызывать
+     */
+    public boolean cacheable(){
+        if( cacheable!=null )return cacheable;
+        cacheable = args.stream().filter(ArgPass::isCacheable).count()>0;
+        return cacheable;
+    }
 
     @Override
     public int argsCasing(){
@@ -174,27 +229,27 @@ public class Call
 
     @Override
     public int invariantArgs(){
-        return (int)getArgs().stream().filter(ArgPass::isInvarant).count();
+        return (int)args.stream().filter(ArgPass::isInvarant).count();
     }
 
     @Override
     public int primitiveCastArgs(){
-        return (int)getArgs().stream().filter(ArgPass::isPrimitiveCast).count();
+        return (int)args.stream().filter(ArgPass::isPrimitiveCast).count();
     }
 
     @Override
     public int castLooseDataArgs(){
-        return (int)getArgs().stream().filter(ArgPass::isCastLooseData).count();
+        return (int)args.stream().filter(ArgPass::isCastLooseData).count();
     }
 
     @Override
     public int covariantArgs(){
-        return (int)getArgs().stream().filter(ArgPass::isCovariant).count();
+        return (int)args.stream().filter(ArgPass::isCovariant).count();
     }
 
     @Override
     public int implicitArgs(){
-        return (int)getArgs().stream().filter(ArgPass::isImplicit).count();
+        return (int)args.stream().filter(ArgPass::isImplicit).count();
     }
 
     @Override
@@ -205,6 +260,7 @@ public class Call
         }
         return 0;
     }
+    //endregion
 
     public String toString(){
         StringBuilder sb = new StringBuilder();
