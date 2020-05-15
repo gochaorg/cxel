@@ -381,22 +381,22 @@ public class EvalContext {
                         Call cl = (Call)pcall;
                         sb.append("scope=").append( calls.get(cl) );
                         sb.append(" method=").append(cl.getFn());
-                        sb.append(" args(").append(cl.getArgs().size()).append("):");
-                        for( int ai=0;ai<cl.getArgs().size();ai++ ){
+                        sb.append(" args(").append(cl.getArgsCount()).append("):");
+                        for( int ai=0;ai<cl.getArgsCount();ai++ ){
                             sb.append("\n");
                             sb.append("arg[").append("]:");
-                            ArgPass apss = cl.getArgs().get(ai);
-                            sb.append(" idx=").append(apss.getIndex());
-                            sb.append(" inputType=").append(apss.getInputType());
+                            ArgPass apss = cl.getArg(ai);
+                            sb.append(" idx=").append(apss.index());
+                            sb.append(" inputType=").append(apss.inputType());
                             sb.append(" passable=").append(apss.isPassable());
                             sb.append(" invariant=").append(apss.isInvarant());
                             sb.append(" covariant=").append(apss.isCovariant());
                             sb.append(" implicit=").append(apss.isImplicit());
                             sb.append(" primtvcst=").append(apss.isPrimitiveCast());
                             sb.append(" cstloose=").append(apss.isCastLooseData());
-                            if( apss.getArg()!=null ){
-                                sb.append(" argType=").append(apss.getArg().getClass());
-                                sb.append(" argValue=").append(apss.getArg());
+                            if( apss.arg()!=null ){
+                                sb.append(" argType=").append(apss.arg().getClass());
+                                sb.append(" argValue=").append(apss.arg());
                             }else{
                                 sb.append(" argValue=").append("null");
                             }
@@ -424,11 +424,11 @@ public class EvalContext {
             }
 
             // Вызываем тот вариант, который ближе всего к правде
-            return minScore.get(0).a().call();
+            return minScore.get(0).a().call( args );
         }
 
         PreparedCall pcall = calls.keySet().iterator().next();
-        return pcall.call();
+        return pcall.call( args );
     }
     //endregion
 
