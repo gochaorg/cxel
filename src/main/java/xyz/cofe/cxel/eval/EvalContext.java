@@ -317,6 +317,38 @@ public class EvalContext {
     }
 
     /**
+     * Генерирует id для кэширования
+     * @param method имя метода/функции
+     * @param args аргументы
+     * @return id
+     */
+    private static String cacheId(String method, List<Object> args){
+        StringBuilder sb = new StringBuilder();
+        if(method!=null){
+            sb.append(method);
+        }
+        if( args!=null ){
+            sb.append("(");
+            int idx = -1;
+            for( Object arg : args ){
+                idx++;
+                if( idx>0 ){
+                    sb.append(",");
+                }
+                Class<? extends Object> carg = arg==null ? Object.class : arg.getClass();
+                sb.append(carg.getTypeName());
+            }
+            sb.append(")");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Кеш вызываемых конструкций
+     */
+    protected final HashMap<String,PreparedCall> cacheCalls = new HashMap<>();
+
+    /**
      * Вызов метода
      * @param method имя метода или имя оператора
      * @param args аргументы
@@ -324,6 +356,12 @@ public class EvalContext {
      */
     public Object call( String method, List<Object> args ){
         if( method==null )throw new IllegalArgumentException( "method==null" );
+
+        String cacheId = cacheId(method,args);
+        PreparedCall preparedCachedCall = cacheCalls.get(cacheId);
+        if( preparedCachedCall!=null ){
+            return preparedCachedCall.call(args);
+        }
 
         PreparingCalls ctxPCalls = contextPreparingCalls();
         PreparingCalls rflPCalls = reflectPreparingCalls();
@@ -424,10 +462,17 @@ public class EvalContext {
             }
 
             // Вызываем тот вариант, который ближе всего к правде
-            return minScore.get(0).a().call( args );
+            PreparedCall preparedCall = minScore.get(0).a();
+            if( preparedCall.cacheable() ){
+                cacheCalls.put(cacheId, preparedCall);
+            }
+            return preparedCall.call( args );
         }
 
         PreparedCall pcall = calls.keySet().iterator().next();
+        if( pcall.cacheable() ){
+            cacheCalls.put(cacheId, pcall);
+        }
         return pcall.call( args );
     }
     //endregion

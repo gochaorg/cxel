@@ -67,20 +67,20 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                     Class<?> p = (Class<?>) params[pi];
                     if( pi>=args.size() ){
                         // Значение параметра не определено
-                        rcall = rcall.addArg( ArgPass.unpassable(pi, p, null));
+                        rcall = rcall.addArg( ArgPass.unpassable(pi, p, null).cacheable(true) );
                     }else{
                         Object arg = args.get(pi);
                         Class<?> at = arg!=null ? arg.getClass() : Object.class;
                         if( arg==null && p.isPrimitive() ){
                             // Значение параметра не может быть null
-                            rcall = rcall.addArg( ArgPass.unpassable(pi,p,null) );
+                            rcall = rcall.addArg( ArgPass.unpassable(pi,p,null).cacheable(true) );
                         }else {
                             if( p.equals(at) ){
                                 // Полное совпадение типа
-                                rcall = rcall.addArg( ArgPass.invariant(pi,p,ArgPass::inputValue));
+                                rcall = rcall.addArg( ArgPass.invariant(pi,p,ArgPass::inputValue).cacheable(true) );
                             }else if( p.isAssignableFrom(at) ){
                                 // Коваринтное совпадение типов
-                                rcall = rcall.addArg( ArgPass.covar(pi,p,ArgPass::inputValue));
+                                rcall = rcall.addArg( ArgPass.covar(pi,p,ArgPass::inputValue).cacheable(true) );
                             }else{
                                 if( NumCast.isPrimitiveNumber(p) && arg instanceof Number ){
                                     // Парамтер представлен примитивным числом и передано число
@@ -89,7 +89,7 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                         //ArgPass argPass = ArgPass.invariant(pi, p,ncast.targetValue );
                                         ArgPass argPass = ArgPass.invariant(pi,p,apass->
                                             NumCast.tryCast(p,(Number)apass.inputValue()).targetValue
-                                        );
+                                        ).cacheable(true);
 
                                         if( ncast.sameType ){
                                             rcall = rcall.addArg(
@@ -109,7 +109,7 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                         //rcall = rcall.addArg(ArgPass.covar(pi, p, v));
                                         rcall = rcall.addArg( ArgPass.covar(
                                             pi, p, apass -> p.cast(apass.inputValue())
-                                        ));
+                                        ).cacheable(true) );
                                     }
                                 }else{
                                     // Нет совместимых вариантов
@@ -136,12 +136,15 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                             rcall = rcall.addArg(ArgPass.implicit(pi, p, apass->{
                                                 implArgs[0] = apass.inputValue();
                                                 return implctCaster.call(implArgs);
-                                            }));
+                                            }).cacheable(true)
+                                            );
                                         }else{
                                             if( implicitCasts.size()==0 ) {
                                                 // Подходящих имплицитных преобразований не найдено
                                                 // Нет совместимых вариантов
-                                                rcall = rcall.addArg(ArgPass.unpassable(pi, p, arg));
+                                                rcall = rcall.addArg(
+                                                    ArgPass.unpassable(pi, p, arg).cacheable(true)
+                                                );
                                             }else{
                                                 System.err.println("found multiple implicit argument cast");
                                                 int idx=-1;
@@ -154,7 +157,10 @@ public abstract class BasePreparingCalls implements PreparingCalls {
                                     }else {
                                         // Подходящих имплицитных преобразований не найдено
                                         // Нет совместимых вариантов
-                                        rcall = rcall.addArg(ArgPass.unpassable(pi, p, arg));
+                                        rcall = rcall.addArg(
+                                            ArgPass.unpassable(pi, p, arg)
+                                            .cacheable(true)
+                                        );
                                     }
                                 }
                             }

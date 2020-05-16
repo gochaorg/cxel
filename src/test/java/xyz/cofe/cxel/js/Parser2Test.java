@@ -500,7 +500,7 @@ public class Parser2Test {
 
         StringBuilder sb = new StringBuilder();
 
-        int cycles = 100;
+        int cycles = 1000;
         long[] genTime = new long[cycles];
         long[] lexerTime = new long[cycles];
         long[] parseTime = new long[cycles];

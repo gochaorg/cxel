@@ -2,6 +2,8 @@ package xyz.cofe.cxel.eval;
 
 import xyz.cofe.cxel.EvalError;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -42,8 +44,31 @@ public class ReflectTypedFn implements TypedFn {
         return method.getGenericReturnType();
     }
 
+    private MethodHandle mhandle = null;
+    private boolean disableLookup = false;
+    private boolean disableMHandleInvoke = false;
+
     @Override
     public Object call(Object[] args) {
+        if( mhandle==null && method!=null && !disableLookup ){
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+            try{
+                mhandle = lookup.unreflect(method);
+            } catch( IllegalAccessException e ){
+                e.printStackTrace();
+                disableLookup = true;
+            }
+        }
+
+        if( mhandle!=null && !disableMHandleInvoke && isStatic() ){
+            try{
+                return mhandle.invokeWithArguments(args);
+            } catch( Throwable throwable ){
+                throwable.printStackTrace();
+                disableMHandleInvoke = true;
+            }
+        }
+
         try {
             if( isStatic() ){
                 return method.invoke(null, args);

@@ -127,34 +127,38 @@ public class Call
     }
 
     /**
-     * Клонирует и добавляет аргумент
+     * Добавляет аргумент
      * @param arg аргумент
-     * @return клон
+     * @return self ссылка
      */
     public Call addArg( ArgPass arg ){
         if( arg==null )throw new IllegalArgumentException("arg==null");
-        return clone().configure( c->{
-            c.args.add(arg.call(this));
-        });
+        args.add(arg.setCall(this));
+        return this;
     }
 
     /**
-     * Клонирует и удаляет аргумент
+     * Удаляет аргумент
      * @param idx индекс аргумента
-     * @return клон
+     * @return self ссылка
      */
     public Call removeArg( int idx ){
-        return clone().configure( c->c.args.remove(idx) );
+        //return clone().configure( c->c.args.remove(idx) );
+        args.remove(idx);
+        return this;
     }
 
     /**
-     * Клонирует и указывает значение аргумента
+     * Указывает значение аргумента
      * @param idx индекс аргумента
      * @param arg ардгумент
-     * @return клон
+     * @return self ссылка
      */
     public Call setArg( int idx, ArgPass arg ){
-        return clone().configure( c->c.args.set(idx,arg) );
+        if( arg==null )throw new IllegalArgumentException("arg==null");
+        //return clone().configure( c->c.args.set(idx,arg) );
+        args.set(idx,arg);
+        return this;
     }
     //endregion
     //region callable() : boolean - проверка возможности вызова
@@ -197,6 +201,10 @@ public class Call
             if( pa.index() >= 0 && pa.index() < params.length )
                 params[pa.index()] = pa.arg();
         });
+
+        //Object res = f.call(params);
+        //System.out.println("call "+f+" input: "+this.inputArgs+" output: "+Arrays.asList(params)+" result: "+res);
+        //return res;
 
         return f.call(params);
     }

@@ -215,6 +215,16 @@ public class ArgPass {
     public ArgPass call( Call ncall ){
         return cloneAndConf( c->c.call = ncall );
     }
+
+    /**
+     * Указывает объект вызова
+     * @param ncall объект вызова
+     * @return self ссылка
+     */
+    public ArgPass setCall( Call ncall ){
+        call = ncall;
+        return this;
+    }
     //endregion
 
     /**
