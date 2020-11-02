@@ -44,6 +44,13 @@ public interface TypedFn {
         return new ReflectTypedFn(method);
     }
 
+    /**
+     * Создание "функции" из лямбды
+     * @param returnType возвращаемый тип
+     * @param fn лямбда
+     * @param <Z>  возвращаемый тип
+     * @return "функция"
+     */
     static <Z> TypedFn of(Class<Z> returnType, Supplier<Z> fn){
         if( returnType==null )throw new IllegalArgumentException("returnType==null");
         if( fn==null )throw new IllegalArgumentException("fn==null");
@@ -67,6 +74,14 @@ public interface TypedFn {
         };
     }
 
+    /**
+     * Создание "функции" 1го аргумента из лямбды
+     * @param targ0 тип первого аргумента
+     * @param returnType возвращаемый тип
+     * @param fn лямбда
+     * @param <Z>  возвращаемый тип
+     * @return "функция"
+     */
     static <A0,Z> TypedFn of( Class<A0> targ0, Class<Z> returnType, Function<A0,Z> fn ){
         if( targ0==null )throw new IllegalArgumentException("targ0==null");
         if( returnType==null )throw new IllegalArgumentException("returnType==null");
@@ -93,6 +108,15 @@ public interface TypedFn {
         };
     }
 
+    /**
+     * Создание "функции" 2ух аргументов из лямбды
+     * @param targ0 тип первого аргумента
+     * @param targ1 тип второго аргумента
+     * @param returnType возвращаемый тип
+     * @param fn лямбда
+     * @param <Z>  возвращаемый тип
+     * @return "функция"
+     */
     static <A0,A1,Z> TypedFn of( Class<A0> targ0, Class<A1> targ1, Class<Z> returnType, BiFunction<A0,A1,Z> fn ){
         if( targ0==null )throw new IllegalArgumentException("targ0==null");
         if( targ1==null )throw new IllegalArgumentException("targ1==null");

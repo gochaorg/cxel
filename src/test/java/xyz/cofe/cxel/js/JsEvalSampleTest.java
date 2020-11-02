@@ -1,6 +1,5 @@
 package xyz.cofe.cxel.js;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -151,7 +150,7 @@ public class JsEvalSampleTest {
         public Consumer<Object> test(){ return test; }
         public Testing test(Consumer<Object> v){ test=v; return this; }
         public Testing expected( Object expectedValue ){
-            return test( evaluatedValue -> { Assert.assertTrue(Objects.equals(expectedValue,evaluatedValue)); } );
+            return test( evaluatedValue -> { assertTrue(Objects.equals(expectedValue,evaluatedValue)); } );
         }
 
         public Testing run(){

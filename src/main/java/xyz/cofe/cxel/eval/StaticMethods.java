@@ -107,6 +107,12 @@ public class StaticMethods implements Eterable<TypedFn> {
         }));
     }
 
+    /**
+     * Поиск методов которые совпадают по типам аргументов и возвращаемому значению
+     * @param returnType тип возвращаемого значения
+     * @param paramTypes типы аргументов
+     * @return совпавшие методы
+     */
     public StaticMethods sameRetAndArgs( Type returnType, Type ... paramTypes ){
         if( returnType==null )throw new IllegalArgumentException("returnType==null");
         if( paramTypes==null )throw new IllegalArgumentException("paramTypes==null");

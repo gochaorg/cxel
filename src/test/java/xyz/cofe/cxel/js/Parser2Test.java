@@ -1,7 +1,7 @@
 package xyz.cofe.cxel.js;
 
-import org.junit.Assert;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import xyz.cofe.cxel.ASTDump;
 import xyz.cofe.cxel.ast.AST;
@@ -88,7 +88,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.literal.apply(tpointer("1.2"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -102,7 +102,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("-1"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -116,7 +116,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("+1"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -130,7 +130,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("a + b"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get(), ctx->ctx.bind("a",1.0).bind("b", 2.0));
@@ -144,7 +144,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("[ a, b ]"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get(), ctx->ctx.bind("a",1.0).bind("b", 2.0));
@@ -165,7 +165,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("{ a: a, b: b }"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get(), ctx->ctx.bind("a",1.0).bind("b", 2.0));
@@ -190,7 +190,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("(1)"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -204,7 +204,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -218,7 +218,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 ** 3"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -232,7 +232,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("3 * 2 ** 3"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -246,7 +246,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 << 2"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -260,7 +260,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("20 >> 2"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -274,7 +274,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("20 >>> 2"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -288,7 +288,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("-1 >>> 0"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         Object res = eval(oast.get());
@@ -303,7 +303,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 - 3 + 4 - 5"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
@@ -321,7 +321,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 + 2 * 3 / 4 - 5"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
@@ -339,7 +339,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("1 * 2 + 3 / 4"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
@@ -357,7 +357,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 / 3 * 4"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
@@ -378,7 +378,7 @@ public class Parser2Test {
         JsParser parser = new JsParser();
         Optional<AST> oast = parser.expression.apply(tpointer("2 + 3 - 4"));
 
-        Assert.assertTrue(oast.isPresent());
+        assertTrue(oast.isPresent());
         ASTDump.build().dump(oast.get());
 
         String str = oast.get().walk().go().map(a->a.getClass().getSimpleName() ).reduce("",(s,a)->s.length()<1 ? a : s+","+a);
@@ -500,7 +500,7 @@ public class Parser2Test {
 
         StringBuilder sb = new StringBuilder();
 
-        int cycles = 1000;
+        int cycles = 10000;
         long[] genTime = new long[cycles];
         long[] lexerTime = new long[cycles];
         long[] parseTime = new long[cycles];
@@ -561,16 +561,16 @@ public class Parser2Test {
         System.out.println("summary times:");
         showTimes.accept(summaryTime);
 
-        System.out.println("gen times:");
+        System.out.println("\ngen times:");
         showTimes.accept(genTime);
 
-        System.out.println("lexer times:");
+        System.out.println("\nlexer times:");
         showTimes.accept(lexerTime);
 
-        System.out.println("parse times:");
+        System.out.println("\nparse times:");
         showTimes.accept(parseTime);
 
-        System.out.println("eval times:");
+        System.out.println("\neval times:");
         showTimes.accept(evalTime);
     }
 }

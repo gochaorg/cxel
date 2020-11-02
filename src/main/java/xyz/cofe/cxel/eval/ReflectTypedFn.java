@@ -10,24 +10,48 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 
+/**
+ * "Функция" основанная на механизмах рефлексии.
+ * Вызывает метод рефлексии для передачи параметров и получения результата
+ */
 public class ReflectTypedFn implements TypedFn {
+    /**
+     * Конструктор
+     * @param method метод рефлексии
+     */
     public ReflectTypedFn(Method method){
         if( method==null )throw new IllegalArgumentException("method==null");
         this.method = method;
     }
 
+    /**
+     * метод рефлексии
+     */
     private final Method method;
 
+    /**
+     * Возвращает метод рефлексии
+     * @return метод
+     */
     public Method getMethod(){ return method; }
 
+    /**
+     * Возвращает "метод" является статичным или нет
+     * @return true - метод статичен
+     */
     public boolean isStatic(){
         return (method.getModifiers() & Modifier.STATIC) == Modifier.STATIC;
     }
 
+    private Type[] parameterTypes;
+
     @Override
     public Type[] getParameterTypes() {
+        if( parameterTypes!=null )return parameterTypes;
+
         if( isStatic() ){
-            return method.getGenericParameterTypes();
+            parameterTypes = method.getGenericParameterTypes();
+            return parameterTypes;
         }else {
             Type[] params = method.getGenericParameterTypes();
 
@@ -35,6 +59,7 @@ public class ReflectTypedFn implements TypedFn {
             System.arraycopy(params, 0, res, 1, params.length);
 
             res[0] = method.getDeclaringClass();
+            parameterTypes = res;
             return res;
         }
     }

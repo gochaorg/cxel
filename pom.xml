@@ -4,15 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>next-parent</artifactId>
-        <groupId>xyz.cofe</groupId>
-        <version>1.0</version>
-    </parent>
+<!--    <parent>-->
+<!--        <artifactId>next-parent</artifactId>-->
+<!--        <groupId>xyz.cofe</groupId>-->
+<!--        <version>1.0</version>-->
+<!--    </parent>-->
 
     <groupId>xyz.cofe</groupId>
     <artifactId>cxel</artifactId>
-    <version>0.3</version>
+    <version>0.4-SNAPSHOT</version>
 
     <name>parser for subset of js expression</name>
     <description>parser for subset of js expression</description>
@@ -21,31 +21,39 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit.jupiter.version>5.6.0</junit.jupiter.version>
+        <junit.version>5.6.0</junit.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>xyz.cofe</groupId>
             <artifactId>ecolls</artifactId>
-            <version>1.3</version>
+            <version>[1.6,1.8-SNAPSHOT)</version>
         </dependency>
         <dependency>
             <groupId>xyz.cofe</groupId>
             <artifactId>xparse</artifactId>
-            <version>1.4</version>
+            <version>[1.4,2.0)</version>
         </dependency>
         <dependency>
             <groupId>xyz.cofe</groupId>
             <artifactId>text</artifactId>
             <version>1.0</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>xyz.cofe</groupId>
+                    <artifactId>ecolls</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -66,6 +74,18 @@
                 <configuration>
                     <source>8</source>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

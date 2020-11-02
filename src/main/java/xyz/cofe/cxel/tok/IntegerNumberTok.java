@@ -179,7 +179,7 @@ public class IntegerNumberTok extends NumberTok<IntegerNumberTok> {
      * @return клон
      */
     public IntegerNumberTok defprecision( IntegerPrecision newPrecision ){
-        if( precision!=null )throw new IllegalArgumentException("precision!=null");
+        if( precision==null )throw new IllegalArgumentException("precision==null");
         return cloneAndConf( c->{c.precisionPredefined = false; c.precision=newPrecision;} );
     }
     //endregion

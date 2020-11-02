@@ -14,9 +14,16 @@ public class EvalContextTest {
         System.out.println("sum(int,int)");
         return a + b;
     }
-
+    public static Integer sum( Integer a, Integer b ){
+        System.out.println("sum(Integer,Integer)");
+        return a + b;
+    }
     public static long sum( long a, long b ){
         System.out.println("sum(long,long)");
+        return a + b;
+    }
+    public static Long sum( Long a, Long b ){
+        System.out.println("sum(Long,Long)");
         return a + b;
     }
 
@@ -70,9 +77,14 @@ public class EvalContextTest {
             ctx.bindStaticMethod(
                 EvalContextTest.class.getMethod("sum", int.class, int.class)
             );
-
+            ctx.bindStaticMethod(
+                EvalContextTest.class.getMethod("sum", Integer.class, Integer.class)
+            );
             ctx.bindStaticMethod(
                 EvalContextTest.class.getMethod("sum", long.class, long.class)
+            );
+            ctx.bindStaticMethod(
+                EvalContextTest.class.getMethod("sum", Long.class, Long.class)
             );
 
             List<Object> args = new ArrayList<>();
