@@ -19,8 +19,8 @@ import java.util.function.Consumer;
  * Парсинг js выражений.
  * <br>
  *
- * <h1>Лексический анализатор</h1>
- * <h2>Литералы</h2>
+ * <b>Лексический анализатор</b> <br>
+ * Литералы <br>
  * <ul>
  *     <li>
  *         Все литералы относящиеся к числам (потомки {@link NumberTok})
@@ -55,14 +55,14 @@ import java.util.function.Consumer;
  *     </li>
  * </ul>
  *
- * <h1>Синтаксический анализатор</h1>
- * <h2>Приоритет бинарных операций</h2>
+ * <b>Синтаксический анализатор</b> <br>
+ * Приоритет бинарных операций <br>
  *
  * <a href="https://developer.mozilla.org/ru/docs/Web/JavaScript/Guide/Expressions_and_Operators">
  *     Приоритет операций согласно Mozilla
  * </a>
  *
- * <table border="0">
+ * <table summary="Операторы">
  *     <tr>
  *         <td>Тип оператора</td>
  *         <td>Операторы</td>
@@ -115,7 +115,7 @@ import java.util.function.Consumer;
  *     </tr>
  *     <tr>
  *         <td>логическое-и	</td>
- *         <td>&&</td>
+ *         <td>&amp;&amp;</td>
  *     </tr>
  *     <tr>
  *         <td>логическое-или две вертикальная черты</td>

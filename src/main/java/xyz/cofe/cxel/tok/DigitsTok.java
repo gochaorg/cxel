@@ -47,7 +47,7 @@ public class DigitsTok extends CToken {
      * @param di индекс символа
      * @return цифра
      * @throws IllegalArgumentException если:
-     * di < 0 или символ на который ссылается di (text().charAt(di)) не входит в набор допустимых символов
+     * di &lt; 0 или символ на который ссылается di (text().charAt(di)) не входит в набор допустимых символов
      */
     public int digit( int di ){
         if( di<0 )throw new IllegalArgumentException("di<0");
