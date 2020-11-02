@@ -14,17 +14,27 @@
     <artifactId>cxel</artifactId>
     <version>0.4-SNAPSHOT</version>
 
-    <name>parser for subset of js expression</name>
-    <description>parser for subset of js expression</description>
-    <url>https://github.com/gochaorg/cofe.xyz-next</url>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.6.0</junit.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
+        <github.login>gochaorg</github.login>
+        <github.project>cxel</github.project>
     </properties>
+
+    <name>parser for subset of js expression</name>
+    <description>parser for subset of js expression</description>
+    <url>https://github.com/${github.login}/${github.project}</url>
+
+    <scm>
+        <connection>scm:git:git@github.com:gochaorg/${github.project}.git</connection>
+        <url>http://github.com/${github.login}/${github.project}</url>
+        <developerConnection>scm:git:git@github.com:gochaorg/${github.project}.git</developerConnection>
+    </scm>
+
 
     <dependencies>
         <dependency>
@@ -86,6 +96,17 @@
                         <version>${junit.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+<!--                    <tagBase>svn://svn.zoo.com/zoo/tags</tagBase>-->
+<!--                    <branchBase>svn://svn.zoo.com/zoo/branches</branchBase>-->
+                    <preparationGoals>clean install</preparationGoals>
+                    <goals>deploy</goals>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
             </plugin>
         </plugins>
     </build>
