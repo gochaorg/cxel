@@ -27,6 +27,20 @@
     <description>parser for subset of js expression</description>
     <url>https://github.com/${github.login}/${github.project}</url>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Georgiy P Kamnev</name>
+            <email>nt.gocha@gmail.com</email>
+        </developer>
+    </developers>
+
     <scm>
         <connection>scm:git:git@github.com:gochaorg/${github.project}.git</connection>
         <url>http://github.com/${github.login}/${github.project}</url>
