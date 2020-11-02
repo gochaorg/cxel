@@ -10,7 +10,7 @@
 
     <groupId>xyz.cofe</groupId>
     <artifactId>cxel</artifactId>
-    <version>0.4</version>
+    <version>0.5-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +31,7 @@
         <connection>scm:git:git@github.com:gochaorg/${github.project}.git</connection>
         <url>http://github.com/${github.login}/${github.project}</url>
         <developerConnection>scm:git:git@github.com:gochaorg/${github.project}.git</developerConnection>
-        <tag>cxel-0.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
